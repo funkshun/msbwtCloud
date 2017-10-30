@@ -29,9 +29,10 @@ class BWTQuery(object):
             # TODO: change based on subprocess status
             cherrypy.response.status = 202
             result = f(*args, **kwargs)
-            time.sleep(60)
+            # time.sleep(60)
             cherrypy.response.status = 200
-            return str(result)
+            # TODO: make sure repr doesn't break anything (sometimes can return class name, etc) 
+            return repr(result)
         else:
             print 'Function %s not found in msbwt functions' % func_call
             cherrypy.response.status = 400

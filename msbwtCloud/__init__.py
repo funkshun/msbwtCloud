@@ -1,1 +1,1 @@
-from .MultiStringBWT import MultiStringBWTCloud
+from .MultiStringBWTCloud import loadBWTCloud
