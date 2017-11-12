@@ -3,13 +3,14 @@ import pysam
 import MUSCython
 from MUSCython import MultiStringBWTCython as MSBWT
 import time
-
+import ast
+import sys
 
 @cherrypy.popargs('func_call')
 class BWTQuery(object):
     
     def __init__(self):
-        self.msbwt = MSBWT.loadBWT('/playpen/C57BL6J_m003636A')
+        self.msbwt = MSBWT.loadBWT(sys.argv[1])
 
     @cherrypy.expose()
     def index(self, func_call, **params):
@@ -18,13 +19,13 @@ class BWTQuery(object):
             f = getattr(self.msbwt, func_call)
             # positional arguments
             args = params.get('args')
-            args = eval(args.encode('utf-8'))
+            args = ast.literal_eval(args.encode('utf-8'))
             # keyword arguments
             kwargs = {}
             for key,val in params.iteritems():
                 if key == 'args':
                     continue
-                kwargs[key]=eval(val.encode('utf-8'))
+                kwargs[key]=ast.literal_eval(val.encode('utf-8'))
             # 202 response code is Accepted -- accepted for processing, but the processing has not been completed
             # TODO: change based on subprocess status
             cherrypy.response.status = 202
