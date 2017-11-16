@@ -15,28 +15,35 @@ class BWTQuery(object):
     @cherrypy.expose()
     def index(self, func_call, **params):
         available = dir(self.msbwt)
+        # positional arguments
+        args = params.get('args')
+        args = ast.literal_eval(args.encode('utf-8'))
+        # keyword arguments
+        kwargs = {}
+        for key,val in params.iteritems():
+            if key == 'args':
+                continue
+            kwargs[key]=ast.literal_eval(val.encode('utf-8'))
         if func_call in available:
             f = getattr(self.msbwt, func_call)
-            # positional arguments
-            args = params.get('args')
-            args = ast.literal_eval(args.encode('utf-8'))
-            # keyword arguments
-            kwargs = {}
-            for key,val in params.iteritems():
-                if key == 'args':
-                    continue
-                kwargs[key]=ast.literal_eval(val.encode('utf-8'))
-            # 202 response code is Accepted -- accepted for processing, but the processing has not been completed
-            # TODO: change based on subprocess status
             cherrypy.response.status = 202
             result = f(*args, **kwargs)
-            # time.sleep(60)
             cherrypy.response.status = 200
             # TODO: make sure repr doesn't break anything (sometimes can return class name, etc) 
             return repr(result)
+        elif func_call == 'batchRecoverString':
+            print args
+            return repr(self.batchRecoverStringFunc(*args))
         else:
-            print 'Function %s not found in msbwt functions' % func_call
-            cherrypy.response.status = 400
+            raise cherrypy.HTTPError(405, "MSBWT method not found.")
+
+    def batchRecoverStringFunc(self, (startIndex, endIndex)):
+        recoverStrings = []
+        for index in range(startIndex, endIndex):
+            recoverStrings.append(self.msbwt.recoverString(index))
+        return recoverStrings
+
+
 
 
 if __name__=='__main__':
