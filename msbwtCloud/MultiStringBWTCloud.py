@@ -68,18 +68,40 @@ class loadBWTCloud(MultiStringBWT.BasicBWT):
         return self.__returnQuery(query)
         
     def findIndicesOfStr(self, seq, givenRange=None):
-        #TODO: add docstring from msbwt docs 
+        '''
+        Executes findIndicesOfStr query on the msbwt associated with the hostname. See below for msbwt documentation:
+
+        This function will search for a string and find the location of that string OR the last index less than it. It also
+        will start its search within a given range instead of the whole structure
+        @param seq - the sequence to search for
+        @param givenRange - the range to search for, whole range by default
+        @return - a python range representing the start and end of the sequence in the bwt
+        '''
         if not givenRange:
             givenRange = {}
         query = self.__constructQuery("findIndicesOfStr", seq, givenRange=givenRange)
         return self.__returnQuery(query)
 
     def getSequenceDollarID(self, strIndex, returnOffset=False):
-        # TODO: add docstring
+        '''
+        Executes getSequenceDollarID query on the msbwt associated with the hostname. See below for msbwt documentation:
+
+        This will take a given index and work backwards until it encounters a '$' indicating which dollar ID is
+        associated with this read
+        @param strIndex - the index of the character to start with
+        @return - an integer indicating the dollar ID of the string the given character belongs to
+        '''
         query = self.__constructQuery("getSequenceDollarID", strIndex, returnOffset=returnOffset)
         return self.__returnQuery(query)
 
     def recoverString(self, strIndex, withIndex=False):
+        '''
+        Executes recoverString query on the msbwt associated with the hostname. See below for msbwt documentation:
+
+        This will return the string that starts at the given index
+        @param strIndex - the index of the string we want to recover
+        @return - string that we found starting at the specified '$' index
+        '''
         query = self.__constructQuery("recoverString", strIndex, withIndex=withIndex)
         return self.__returnQuery(query)
 
@@ -112,4 +134,8 @@ class loadBWTCloud(MultiStringBWT.BasicBWT):
     def createKmerProfile(self, k, profileCsvFN):
         # TODO: evaluate if need this function
         pass
+
+    def batchRecoverString(self, givenRange):
+        query = self.__constructQuery("batchRecoverString", givenRange)
+        return self.__returnQuery(query)
 
