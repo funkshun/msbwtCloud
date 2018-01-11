@@ -34,6 +34,9 @@ class BWTQuery(object):
         elif func_call == 'batchRecoverString':
             print args
             return repr(self.batchRecoverStringFunc(*args))
+        elif func_call == 'batchCountOccurrencesOfSeq':
+            print args
+            return repr(self.batchCountOccurrencesOfSeqFunc(*args))
         else:
             raise cherrypy.HTTPError(405, "MSBWT method not found.")
 
@@ -43,7 +46,11 @@ class BWTQuery(object):
             recoverStrings.append(self.msbwt.recoverString(index))
         return recoverStrings
 
-
+    def batchCountOccurrencesOfSeqFunc(self, queries):
+        counts = []
+        for q in queries:
+            counts.append(self.msbwt.countOccurrencesOfSeq(q))
+        return counts
 
 
 if __name__=='__main__':
