@@ -5,6 +5,8 @@ from MUSCython import MultiStringBWTCython as MSBWT
 import time
 import ast
 import sys
+from fastBatchKmerCounter import generate_counts as fastBatchKmerCounts
+
 
 @cherrypy.popargs('func_call')
 class BWTQuery(object):
@@ -31,26 +33,33 @@ class BWTQuery(object):
             cherrypy.response.status = 200
             # TODO: make sure repr doesn't break anything (sometimes can return class name, etc) 
             return repr(result)
+        # TODO: evaluate whether it's better to do these elifs or expose the methods (see batchCount)
+        # Note: if expose, need to do the same argument handling (args) as above in each method
         elif func_call == 'batchRecoverString':
-            print args
             return repr(self.batchRecoverStringFunc(*args))
         elif func_call == 'batchCountOccurrencesOfSeq':
-            print args
             return repr(self.batchCountOccurrencesOfSeqFunc(*args))
+        elif func_call == 'batchFastCountOccurrencesOfSeq':
+            return repr(self.batchFastCountOccurrencesFunc(*args))
         else:
             raise cherrypy.HTTPError(405, "MSBWT method not found.")
-
+   
+    #TODO: raise errors for incorrect paramters 
     def batchRecoverStringFunc(self, (startIndex, endIndex)):
         recoverStrings = []
         for index in range(startIndex, endIndex):
             recoverStrings.append(self.msbwt.recoverString(index))
         return recoverStrings
-
+  
     def batchCountOccurrencesOfSeqFunc(self, queries):
         counts = []
         for q in queries:
             counts.append(self.msbwt.countOccurrencesOfSeq(q))
         return counts
+
+    def batchFastCountOccurrencesFunc(self, queries):
+        return fastBatchKmerCounts(self.msbwt, queries)
+        
 
 
 if __name__=='__main__':
