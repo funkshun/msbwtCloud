@@ -68,7 +68,10 @@ def build_stack(msbwt, stack, indices, shared_next, q):
         for i in range(0,shared_next-stack_end):
             p_lo, p_hi = indices[-1]
             stack.append(base+q[stack_end+i])
-            lo, hi = msbwt.findIndicesOfStr(q[stack_end+i], (p_lo, p_hi))
+            if (p_hi-p_lo) == 0: # early termination case
+                lo, hi = p_lo, p_hi
+            else:
+                lo, hi = msbwt.findIndicesOfStr(q[stack_end+i], (p_lo, p_hi))
             indices.append([lo, hi])
             base += q[stack_end+i]
         lo,hi = indices[-1]
@@ -89,8 +92,8 @@ def get_shared_prefixes(seqs):
     return shared
 
 def generate_counts(msbwt, queries):
-    # Takes a list of queries and returns the corresponding counts 
-    queries = np.array(queries) 
+    # Takes a list of queries and returns the corresponding counts
+    queries = np.array(queries)
     indicesSorted = sorted(range(len(queries)), key=lambda k: queries[k], cmp=bwtsort)
     queriesSorted = sorted(queries, cmp=bwtsort)
     rev = [''.join([s for s in reversed(q)]) for q in queriesSorted]
@@ -101,16 +104,12 @@ def generate_counts(msbwt, queries):
     indices = []
     lo, hi = msbwt.findIndicesOfStr('')
     indices.append([lo, hi])
-    # counts = []
     counts = np.empty((len(queries)), dtype='int32')
     counter = 0
     for row in queriesSorted:
         q = ''.join([s for s in reversed(row)])
         shared_next = shared[counter]
         stack, indices, count = build_stack(msbwt, stack, indices, shared_next, q)
-        # counts.append(count)
         counts[counter] = count
         counter += 1
-    #countsUnsorted = counts[indicesSorted]
     return counts
-
