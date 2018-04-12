@@ -7,6 +7,7 @@ source ~/.bashrc
 
 conda install cherrypy
 conda install numpy==1.11.1
+conda install pandas
 conda install pysam
 sudo apt-get install gcc
 easy_install msbwt
@@ -21,4 +22,4 @@ scp -r $bwt_location .
 mkdir ~/msbwtCloud
 cd ~/msbwtCloud
 wget https://raw.githubusercontent.com/mnajarian/msbwtCloud/master/core.py
-
+wget https://raw.githubusercontent.com/mnajarian/msbwtCloud/master/fastBatchKmerCounter.py
