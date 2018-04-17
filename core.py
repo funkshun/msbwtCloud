@@ -63,7 +63,7 @@ class BWTQuery(object):
         return counts
 
     def batchFastCountOccurrencesFunc(self, queries):
-        return fastBatchKmerCounts(self.msbwt, queries)
+        return fastBatchKmerCounts(self.msbwt, queries).tolist()
 
 
 
