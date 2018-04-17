@@ -27,25 +27,25 @@ class BWTQuery(object):
             if key == 'args':
                 continue
             kwargs[key]=ast.literal_eval(val.encode('utf-8'))
-        dataOut = {}
-        dataOut['status'] = "success"
         if func_call in available:
             f = getattr(self.msbwt, func_call)
             cherrypy.response.status = 202
             result = f(*args, **kwargs)
             cherrypy.response.status = 200
             # TODO: make sure repr doesn't break anything (sometimes can return class name, etc)
-            dataOut['data'] = result
             # return repr(result)
-            return json.dumps(dataOut)
+            return json.dumps({'result':result})
         # TODO: evaluate whether it's better to do these elifs or expose the methods (see batchCount)
         # Note: if expose, need to do the same argument handling (args) as above in each method
         elif func_call == 'batchRecoverString':
-            return repr(self.batchRecoverStringFunc(*args))
+            return json.dumps({'result': self.batchRecoverStringFunc(*args)})
+            # return repr(self.batchRecoverStringFunc(*args))
         elif func_call == 'batchCountOccurrencesOfSeq':
-            return repr(self.batchCountOccurrencesOfSeqFunc(*args))
+            return json.dumps({'result': self.batchCountOccurrencesOfSeqFunc(*args)})
+            # return repr(self.batchCountOccurrencesOfSeqFunc(*args))
         elif func_call == 'batchFastCountOccurrencesOfSeq':
-            return repr(self.batchFastCountOccurrencesFunc(*args))
+            return json.dumps({'result': self.batchFastCountOccurrencesFunc(*args)})
+            # return repr(self.batchFastCountOccurrencesFunc(*args))
         else:
             raise cherrypy.HTTPError(405, "MSBWT method not found.")
 
