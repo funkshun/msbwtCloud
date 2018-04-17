@@ -5,12 +5,13 @@ from MUSCython import MultiStringBWTCython as MSBWT
 import time
 import ast
 import sys
+import json
 from fastBatchKmerCounter import generate_counts as fastBatchKmerCounts
 
 
 @cherrypy.popargs('func_call')
 class BWTQuery(object):
-    
+
     def __init__(self):
         self.msbwt = MSBWT.loadBWT(sys.argv[1])
 
@@ -26,13 +27,17 @@ class BWTQuery(object):
             if key == 'args':
                 continue
             kwargs[key]=ast.literal_eval(val.encode('utf-8'))
+        dataOut = {}
+        dataOut['status'] = "success"
         if func_call in available:
             f = getattr(self.msbwt, func_call)
             cherrypy.response.status = 202
             result = f(*args, **kwargs)
             cherrypy.response.status = 200
-            # TODO: make sure repr doesn't break anything (sometimes can return class name, etc) 
-            return repr(result)
+            # TODO: make sure repr doesn't break anything (sometimes can return class name, etc)
+            dataOut['data'] = result
+            # return repr(result)
+            return json.dumps(dataOut)
         # TODO: evaluate whether it's better to do these elifs or expose the methods (see batchCount)
         # Note: if expose, need to do the same argument handling (args) as above in each method
         elif func_call == 'batchRecoverString':
@@ -43,14 +48,14 @@ class BWTQuery(object):
             return repr(self.batchFastCountOccurrencesFunc(*args))
         else:
             raise cherrypy.HTTPError(405, "MSBWT method not found.")
-   
-    #TODO: raise errors for incorrect paramters 
+
+    #TODO: raise errors for incorrect paramters
     def batchRecoverStringFunc(self, (startIndex, endIndex)):
         recoverStrings = []
         for index in range(startIndex, endIndex):
             recoverStrings.append(self.msbwt.recoverString(index))
         return recoverStrings
-  
+
     def batchCountOccurrencesOfSeqFunc(self, queries):
         counts = []
         for q in queries:
@@ -59,7 +64,7 @@ class BWTQuery(object):
 
     def batchFastCountOccurrencesFunc(self, queries):
         return fastBatchKmerCounts(self.msbwt, queries)
-        
+
 
 
 if __name__=='__main__':
