@@ -1,7 +1,7 @@
 ## VM Startup
 1. Create a new VM instance. We recommend a machine type of 2 virtual CPUs (vCPUs) with 52 GB memory, an Ubuntu 14.04 LTS OS, 
 and SSD disk of 48 GB (dependent on the size of your msbwt, as a general rule add 10GB of memory to the size of your msbwt).
-2. [Only needs to be done ONCE per project] Add a Firewall rule in Google Compute Engine to allow traffic to port 8080. Within the GPC dashboard, navigate to Networking --> VPC network --> Firewall rules. Add an ingress rule that filters on all IP ranges (`0.0.0.0/0`) and the 8080 port (`tcp:8080`).
+2. [**Only needs to be done ONCE per project**] Add a Firewall rule in Google Compute Engine to allow traffic to port 8080. Within the GPC dashboard, navigate to Networking --> VPC network --> Firewall rules. Add an ingress rule that filters on all IP ranges (`0.0.0.0/0`) and the 8080 port (`tcp:8080`).
   - Name you instance and provide a description
   - Network: default
   - Priority: 1000
