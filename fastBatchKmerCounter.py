@@ -11,6 +11,7 @@ import argparse
 import socket
 import itertools
 
+
 def bwtsort(atup, btup):
     aseq = atup[0]
     bseq = btup[0]
@@ -112,4 +113,4 @@ def generate_counts(msbwt, queries):
         stack, indices, count = build_stack(msbwt, stack, indices, shared_next, q)
         counts[counter] = count
         counter += 1
-    return counts
+    return [counts[i] for i in indicesSorted]
