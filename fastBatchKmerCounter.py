@@ -113,4 +113,4 @@ def generate_counts(msbwt, queries):
         stack, indices, count = build_stack(msbwt, stack, indices, shared_next, q)
         counts[counter] = count
         counter += 1
-    return [counts[i] for i in indicesSorted]
+    return [int(counts[i]) for i in indicesSorted]
