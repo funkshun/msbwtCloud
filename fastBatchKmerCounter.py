@@ -113,7 +113,7 @@ def generate_counts(msbwt, queries):
         stack, indices, count = build_stack(msbwt, stack, indices, shared_next, q)
         counts[counter] = count
         counter += 1
-    countsUnsorted = np.empty((len(counts)))
+    countsUnsorted = np.empty((len(counts)), dtype='int32')
     for i in xrange(len(counts)):
         countsUnsorted[indicesSorted[i]] = counts[i]
     return countsUnsorted.tolist()
