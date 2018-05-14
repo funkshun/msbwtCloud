@@ -115,5 +115,5 @@ def generate_counts(msbwt, queries):
         counter += 1
     countsUnsorted = [0 for _ in xrange(len(counts))]
     for i in xrange(len(counts)):
-        countsUnsorted[indicesSorted[i]] = int(counts[i])
-    return countsUnsorted
+        countsUnsorted[indicesSorted[i]] = counts[i]
+    return countsUnsorted.tolist()
