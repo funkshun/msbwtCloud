@@ -42,7 +42,7 @@ class BWTQuery(object):
         elif func_call == "checkAlive":
             try:
                 if self.msbwt.countOccurrencesOfSeq('T') > 0:
-                    return json.dumps({'alive': True, 'name': os.dirname(__file__)})
+                    return json.dumps({{'alive': True, 'name':sys.argv[1].strip().split("/")[-1]}})
                 else:
                     return json.dumps({'alive': False})
             except:
