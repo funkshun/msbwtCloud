@@ -45,6 +45,8 @@ class BWTQuery(object):
                     return json.dumps({'result': True})
                 else:
                     return json.dumps({'result': False})
+            except:
+                return json.dumps({'result': False})
         elif func_call == 'batchRecoverString':
             return json.dumps({'result': self.batchRecoverStringFunc(*args)})
         elif func_call == 'batchCountOccurrencesOfSeq':
