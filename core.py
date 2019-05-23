@@ -42,7 +42,7 @@ class BWTQuery(object):
         elif func_call == "checkAlive":
             try:
                 if self.msbwt.countOccurrencesOfSeq('T') > 0:
-                    return json.dumps({'alive': True, 'name':os.curdir()})
+                    return json.dumps({{'alive': True, 'name':os.curdir()}})
                 else:
                     return json.dumps({'alive': False})
             except:

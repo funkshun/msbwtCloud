@@ -6,12 +6,15 @@ import requests
 from flask import Flask
 
 def create_app(test_config=None):
+    ROOT = os.path.realpath(os.path.dirname(__file__))
     try:
-        with open('hosts', 'r') as f:
+        with open(os.path.join(ROOT, 'hosts'), 'r') as f:
             host_lst = f.read()
-        hosts = host_lst.split("\n").trim()
-    except:
+        hosts = [x.strip() for x in host_lst.split("\n")]
+        #print(hosts)
+    except Exception as e:
         print("Error opening hosts file. Ensure file exists and is populated")
+        print(e)
         sys.exit(1)
     
     app = Flask(__name__, instance_relative_config = True)
@@ -35,11 +38,14 @@ def create_app(test_config=None):
             r = requests.get('http://' + h + '/checkAlive?args=[]')
             j = json.load(r.json())
             if(j['alive']):
+                print(j)
                 alive[h] = j
-    
+        except:
+            pass
+
     @app.route('/hosts')
-    def hosts():
-        return alive
+    def listHosts():
+        return json.dumps(alive)
 
     return app
 
