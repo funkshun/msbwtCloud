@@ -15,6 +15,7 @@ class BWTQuery(object):
 
     def __init__(self):
         self.msbwt = MSBWT.loadBWT(sys.argv[1])
+        self.name = sys.argv[1].strip().split("/")[-2]
         # file_data = {}
         # for f in os.listdir(sys.argv[1]):
         #     file_data[f] = os.path.getsize()
@@ -36,13 +37,13 @@ class BWTQuery(object):
             cherrypy.response.status = 202
             result = f(*args, **kwargs)
             cherrypy.response.status = 200
-            return json.dumps({'result':result})
+            return json.dumps({'result':result, 'name':self.name})
         # TODO: evaluate whether it's better to do these elifs or expose the methods (see batchCount)
         # Note: if expose, need to do the same argument handling (args) as above in each method
         elif func_call == "checkAlive":
             try:
                 if self.msbwt.countOccurrencesOfSeq('T') > 0:
-                    return json.dumps({{'alive': True, 'name':sys.argv[1].strip().split("/")[-1]}})
+                    return json.dumps({{'alive': True, 'name': self.name}})
                 else:
                     return json.dumps({'alive': False})
             except:
