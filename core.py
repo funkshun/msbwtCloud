@@ -6,6 +6,7 @@ import time
 import ast
 import sys
 import json
+import os
 from fastBatchKmerCounter import generate_counts as fastBatchKmerCounts
 
 
@@ -14,6 +15,9 @@ class BWTQuery(object):
 
     def __init__(self):
         self.msbwt = MSBWT.loadBWT(sys.argv[1])
+        # file_data = {}
+        # for f in os.listdir(sys.argv[1]):
+        #     file_data[f] = os.path.getsize()
 
     @cherrypy.expose()
     def index(self, func_call, **params):
@@ -35,6 +39,12 @@ class BWTQuery(object):
             return json.dumps({'result':result})
         # TODO: evaluate whether it's better to do these elifs or expose the methods (see batchCount)
         # Note: if expose, need to do the same argument handling (args) as above in each method
+        elif func_call == "checkAlive":
+            try:
+                if self.msbwt.countOccurrencesOfSeq('T') > 0:
+                    return json.dumps({'result': True})
+                else:
+                    return json.dumps({'result': False})
         elif func_call == 'batchRecoverString':
             return json.dumps({'result': self.batchRecoverStringFunc(*args)})
         elif func_call == 'batchCountOccurrencesOfSeq':
