@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+
+<head>
+    <title>UNC Bioinformatics Dataset Service</title>
+</head>
+
+<body>
+    <h2>Results of {{ func_call }} on {{name}}</h2>
+    <table border=1>
+        <tr>
+            <th>Genome</th>
+            <td>Parameters</td>
+            <td>Result</td>
+        </tr>
+        {%for r in res%}
+        <tr>
+            <th> {{r["name"]}} </th>
+            <td> {{ar}} </td>
+            <td> {{r["result"]}} </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
