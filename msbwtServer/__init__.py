@@ -2,6 +2,7 @@ import os
 import json
 import sys
 import MultiStringBWTCloud as msb
+import requests
 from flask import Flask
 
 def create_app(test_config=None):
@@ -28,8 +29,20 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
+    alive = {}
     for h in hosts:
-        print(h)
+        try:
+            r = requests.get('http://' + h + '/checkAlive?args=[]')
+            j = json.load(r.json())
+            if(j['alive']):
+                alive[h] = j
+    
+    @app.route('/hosts')
+    def hosts():
+        return alive
+
+    return app
+
     
 
 

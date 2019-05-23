@@ -42,11 +42,11 @@ class BWTQuery(object):
         elif func_call == "checkAlive":
             try:
                 if self.msbwt.countOccurrencesOfSeq('T') > 0:
-                    return json.dumps({'result': True})
+                    return json.dumps({'alive': True, 'name':os.curdir()})
                 else:
-                    return json.dumps({'result': False})
+                    return json.dumps({'alive': False})
             except:
-                return json.dumps({'result': False})
+                return json.dumps({'alive': False})
         elif func_call == 'batchRecoverString':
             return json.dumps({'result': self.batchRecoverStringFunc(*args)})
         elif func_call == 'batchCountOccurrencesOfSeq':
