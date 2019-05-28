@@ -5,7 +5,7 @@
 </head>
 
 <body>
-    <h2>Results of {{ func_call }} on {{name}}</h2>
+    <h2>Results of {{ func_call }}</h2>
     <table border=1>
         <tr>
             <th>Genome</th>
@@ -14,9 +14,10 @@
         </tr>
         {%for r in res%}
         <tr>
-            <th> {{r["name"]}} </th>
-            <td> {{ar}} </td>
-            <td> {{r["result"]}} </td>
+            <th> {{r["data"]["name"]}} </th>
+            <td> {{r["args"]}} </td>
+            <td> {{r["kwargs"]}} </td>
+            <td> {{r["status"]}} </td>
         </tr>
         {% endfor %}
     </table>
