@@ -51,8 +51,22 @@ def create_app(test_config=None):
 
     @app.route('/results/<phrase>')
     def results(phrase):
-        
-        idd = idd.encode('ascii', 'ignore')
+        res = jobs[phrase]
+        rets = []
+        for re in res:
+            r = requests.get(bwts[re['data']['name']] + '/results/' + re['token'])
+            if r.status_code == 200:
+                rj = r.json()
+                re['date'] = rj['date']
+                re['status'] = rj['status']
+                if re['status'] == 'RUNNING':
+                    re['result'] = 'In Progress'
+                elif re['status'] == 'FAILED':
+                    re['result'] = 'Query Failed'
+
+        return render_template('results.html', vals = res)
+
+
     
     @app.route('/<func_call>')
     def functionCaller(func_call):
@@ -65,12 +79,12 @@ def create_app(test_config=None):
         for name in names:
             r = makeRequest(name, func_call, args, bwts)
             a = r.json()
-            a['status'] = r.status_code
+            a['status_code'] = r.status_code
             rets.append(a)
         loc_tok = getToken()
         jobs[loc_tok] = rets
 
-        return render_template('result.html', func_call=func_call, res=rets, ar=args, token = loc_tok)
+        return render_template('job.html', func_call=func_call, res=rets, ar=args, token = loc_tok)
     #return r.json()
 
     

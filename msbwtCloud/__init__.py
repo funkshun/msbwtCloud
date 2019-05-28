@@ -3,6 +3,8 @@ import json
 import sys
 import requests
 import ast
+import datetime as dt
+import time
 #import secrets
 import random
 import string
@@ -11,7 +13,7 @@ from flask import Response
 from flask import request
 from flask import render_template
 from apscheduler.schedulers.background import BackgroundScheduler
-from multiprocessing.pool import ThreadPool
+from threading import Thread
 from MUSCython import MultiStringBWTCython as MSBWT
 
 
@@ -49,7 +51,8 @@ def create_app(test_config=None):
         'load': 0
     }
 
-    waiting = {}
+    
+    results = {}
     
     
     
@@ -71,17 +74,18 @@ def create_app(test_config=None):
             args = request.args.get('args', None)
             if args is None:
                 return Response(status=400)
-            available = dir(app.config['BWT'])
+            
             # positional arguments
             args = ast.literal_eval(args.encode('utf-8'))
             # keyword arguments
             kwargs = {}
             tok = getToken()
             st = 405
-            if func_call in available:
-                f = getattr(app.config['BWT'], func_call)
-                waiting[tok] = (f, args, kwargs)
+            try:
+                results[tok] = Job(func_call, args, kwargs, app.config['BWT'])
                 st = 200
+            except:
+                st = 405
             summary = {
                 'data': app.config['data'],
                 'token': tok,
@@ -90,6 +94,17 @@ def create_app(test_config=None):
                 'kwargs': kwargs
             }
             return Response(json.dumps(summary), status=st)
+
+    @app.route('/results/<token>')
+    def results(token):
+        try:
+            j = results[token]
+            data = {'result': j.result, 'date': j.date, 'status': j.status}
+            if j.done and j.status == 'SUCCESS':
+                data['result'] = j.result
+            return Response(json.dumps(data), status = 200)
+        except:
+            return Response(status = 404)
             
             
     return app
@@ -100,6 +115,39 @@ def getToken():
     for i in range(15):
         t = t + random.choice(alphabet)
     return t
+
+class Job(self):
+
+    def __init__(func_call, args, kwargs, bwt):
+        
+        self.done = False
+        self.date = dt.datetime.now()
+        self.result = None
+        self.status = 'RUNNING'
+        t = Thread(target=threadr, args = (func_call, args, kwargs, bwt))
+        
+
+    def threadr(func_call, args, kwargs, bwt):
+        try:  
+            available = dir(bwt)
+            if func_call in available:
+                f = getattr(bwt, func_call)
+                result = f(*args, **kwargs)
+                self.result = result
+                self.status = 'SUCCESS'
+            elif func_call == 'testr':
+                x = int(args[0])
+                time.sleep(x)
+                self.result = "Slept " + x + " seconds"
+                self.status = 'SUCCESS'
+        except:
+            self.status = 'FAILED'
+
+        self.done = True
+
+
+
+
             
             
     
