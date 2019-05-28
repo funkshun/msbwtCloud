@@ -52,17 +52,21 @@ def create_app(test_config=None):
     @app.route('/results/<phrase>')
     def results(phrase):
         res = jobs[phrase]
-        rets = []
+        
         for re in res:
             r = requests.get(bwts[re['data']['name']] + '/results/' + re['token'])
+            print(re['token'])
             if r.status_code == 200:
                 rj = r.json()
+                print(rj['status'])
                 re['date'] = rj['date']
                 re['status'] = rj['status']
                 if re['status'] == 'RUNNING':
                     re['result'] = 'In Progress'
                 elif re['status'] == 'FAILED':
                     re['result'] = 'Query Failed'
+                else:
+                    re['result'] = rj['result']
 
         return render_template('results.html', vals = res)
 
