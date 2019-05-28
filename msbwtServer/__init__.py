@@ -1,7 +1,6 @@
 import os
 import json
 import sys
-import MultiStringBWTCloud as msb
 import requests
 from flask import Flask
 from flask import Response
@@ -37,25 +36,34 @@ def create_app(test_config=None):
 
     @app.route('/hosts')
     def listHosts():
-        return Response(json.dumps(alive), status=200)
+        return Response(json.dump(alive), status=200)
+
+    @app.route('functions')
+    def functions():
+        return render_template('functions.html')
+
+    @app.route('/results')
+    def results():
+        idd = request.args.get('id', None)
+        if idd is None:
+            return render_template('error.html', e = NO_ARGS)
+        idd = idd.encode('ascii', 'ignore')
     
     @app.route('/<func_call>')
     def functionCaller(func_call):
-        if func_call == 'functons':
-            return render_template('functions.html', name=name)
-        else:
             
-            args = request.args.get('args', None).encode('ascii', 'ignore')
-            names = [x.encode('ascii', 'ignore') for x in request.args.getlist('names')]
-            
-            pool = ThreadPool(processes = 2)
-            rets = []
-            for i, name in enumerate(names):
-                rets.append(pool.apply_async(makeRequest, (name, func_call, args, bwts)))
-            for i, a in enumerate(rets):
-                rets[i] = a.get()
-            return render_template('result.html', func_call=func_call, res=rets, ar=args)
-        #return r.json()
+        args = request.args.get('args', None).encode('ascii', 'ignore')
+        names = [x.encode('ascii', 'ignore') for x in request.args.getlist('names')]
+        
+
+        rets = []
+        for name in names:
+            rets.append(makeRequest(name, args, bwts))
+
+        return render_template('result.html', func_call=func_call, res=rets, ar=args)
+    #return r.json()
+
+    
 
 
     return app
@@ -77,8 +85,9 @@ def checkHosts():
             try:
                 r = requests.get('http://' + h + '/checkAlive?args=[]')
                 j = r.json()
-                #print(j)
-                if(j['alive']):
+                # #print(j)
+                # if(j['alive']):
+                if r.status_code == 200:
                     #print(j)
                     alive[h] = j
                 bwts = {}
