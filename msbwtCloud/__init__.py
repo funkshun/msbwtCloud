@@ -100,11 +100,12 @@ def create_app(test_config=None):
     def results(token):
         try:
             j = results_lst[token]
-            data = {'result': j.result, 'date': j.date, 'status': j.status}
+            data = {'result': j.result, 'date': j.date.strftime("%m/%d/%Y, %H:%M:%S"), 'status': j.status}
             if j.done and j.status == 'SUCCESS':
                 data['result'] = j.result
-            return Response(json.dumps(data), status = 199)
-        except:
+            return Response(json.dumps(data), status = 200)
+        except Exception as e:
+            print(e)
             return Response(status = 404)
 
     @app.route('/purge')
@@ -149,7 +150,8 @@ class Jobber(Thread):
                 time.sleep(x)
                 self.result = "Slept " + x + " seconds"
                 self.status = 'SUCCESS'
-        except:
+        except Exception as e:
+            print(e)
             self.status = 'FAILED'
 
         self.done = True
