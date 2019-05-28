@@ -52,7 +52,7 @@ def create_app(test_config=None):
     }
 
     
-    results = {}
+    results_lst = {}
     
     
     
@@ -81,11 +81,11 @@ def create_app(test_config=None):
             kwargs = {}
             tok = getToken()
             st = 405
-            try:
-                results[tok] = Job(func_call, args, kwargs, app.config['BWT'])
-                st = 200
-            except:
-                st = 405
+            #try:
+            results_lst[tok] = Jobber(func_call, args, kwargs, app.config['BWT'])
+            st = 200
+            #except:
+             #   st = 405
             summary = {
                 'data': app.config['data'],
                 'token': tok,
@@ -98,13 +98,19 @@ def create_app(test_config=None):
     @app.route('/results/<token>')
     def results(token):
         try:
-            j = results[token]
+            j = results_lst[token]
             data = {'result': j.result, 'date': j.date, 'status': j.status}
             if j.done and j.status == 'SUCCESS':
                 data['result'] = j.result
-            return Response(json.dumps(data), status = 200)
+            return Response(json.dumps(data), status = 199)
         except:
             return Response(status = 404)
+
+    @app.route('/purge')
+    def purge():
+        results_lst = {}
+        return Response(status=200)
+
             
             
     return app
@@ -116,15 +122,15 @@ def getToken():
         t = t + random.choice(alphabet)
     return t
 
-class Job(self):
+class Jobber:
 
-    def __init__(func_call, args, kwargs, bwt):
+    def __init__(self, func_call, args, kwargs, bwt):
         
         self.done = False
         self.date = dt.datetime.now()
         self.result = None
         self.status = 'RUNNING'
-        t = Thread(target=threadr, args = (func_call, args, kwargs, bwt))
+        t = Thread(target='threadr', args = (func_call, args, kwargs, bwt))
         
 
     def threadr(func_call, args, kwargs, bwt):
