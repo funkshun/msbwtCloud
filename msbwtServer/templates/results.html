@@ -17,7 +17,7 @@
         </tr>
         {%for r in vals%}
         <tr>
-            <th> {{r[""data"]["name"]"}} </th>
+            <th> {{r["data"]["name"]}} </th>
             <th> {{ func_call }}</th>
             <th> {{ r['date'] }}</th>
             <td> {{r["args"]}} </td>
@@ -28,7 +28,7 @@
                 <td>REJECTED</td>
             {% endif %}
             <td> {{r['status'] }}</td>
-            <td> {{r['result'}} </td>
+            <td> {{r['result'] }} </td>
         </tr>
         {% endfor %}
     </table>
