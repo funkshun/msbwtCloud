@@ -82,7 +82,8 @@ def create_app(test_config=None):
             tok = getToken()
             st = 405
             #try:
-            results_lst[tok] = Jobber(func_call, args, kwargs, app.config['BWT'])
+            results_lst[tok] = Jobber()
+            results_lst[tok].run(func_call, args, kwargs, app.config['BWT'])
             st = 200
             #except:
              #   st = 405
@@ -122,18 +123,20 @@ def getToken():
         t = t + random.choice(alphabet)
     return t
 
-class Jobber:
+class Jobber(Thread):
 
-    def __init__(self, func_call, args, kwargs, bwt):
-        
+    def __init__(self):
+        Thread.__init__(self)
         self.done = False
         self.date = dt.datetime.now()
         self.result = None
         self.status = 'RUNNING'
-        t = Thread(target='threadr', args = (func_call, args, kwargs, bwt))
+
+
+        
         
 
-    def threadr(func_call, args, kwargs, bwt):
+    def run(self, func_call, args, kwargs, bwt):
         try:  
             available = dir(bwt)
             if func_call in available:
