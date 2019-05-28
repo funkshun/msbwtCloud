@@ -5,19 +5,26 @@
 </head>
 
 <body>
-    <h2>Results of {{ func_call }}</h2>
+    <h2>Results will be available at /results/{{ token }}</h2>
     <table border=1>
         <tr>
             <th>Genome</th>
-            <td>Parameters</td>
-            <td>Result</td>
+            <td>Function</td>
+            <td>args</td>
+            <td>kwargs</td>
+            <td>Status</td>
         </tr>
         {%for r in res%}
         <tr>
             <th> {{r["data"]["name"]}} </th>
+            <th> {{ func_call }}</th>
             <td> {{r["args"]}} </td>
             <td> {{r["kwargs"]}} </td>
-            <td> {{r["status"]}} </td>
+            {% if r["status"] == 200 %}
+                <td>ACCEPTED</td>
+            {% else %}
+                <td>REJECTED</td>
+            {% endif %}
         </tr>
         {% endfor %}
     </table>

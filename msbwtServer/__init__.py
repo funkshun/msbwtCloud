@@ -2,6 +2,10 @@ import os
 import json
 import sys
 import requests
+import sqlite3
+import random
+import string
+import msbwtServer.db as db_ops
 from flask import Flask
 from flask import Response
 from flask import request
@@ -28,6 +32,9 @@ def create_app(test_config=None):
     scheduler = BackgroundScheduler()
     job = scheduler.add_job(checkHosts, 'interval', minutes=5)
     alive, bwts = checkHosts()
+    jobs = {}
+
+    app.config['db'] = db_ops.create_db('msbwt.sqlite')
 
 
     @app.route('/')
@@ -36,17 +43,15 @@ def create_app(test_config=None):
 
     @app.route('/hosts')
     def listHosts():
-        return Response(json.dump(alive), status=200)
+        return Response(json.dumps(alive), status=200)
 
-    @app.route('functions')
+    @app.route('/functions')
     def functions():
         return render_template('functions.html')
 
-    @app.route('/results')
-    def results():
-        idd = request.args.get('id', None)
-        if idd is None:
-            return render_template('error.html', e = NO_ARGS)
+    @app.route('/results/<phrase>')
+    def results(phrase):
+        
         idd = idd.encode('ascii', 'ignore')
     
     @app.route('/<func_call>')
@@ -58,9 +63,14 @@ def create_app(test_config=None):
 
         rets = []
         for name in names:
-            rets.append(makeRequest(name, args, bwts))
+            r = makeRequest(name, func_call, args, bwts)
+            a = r.json()
+            a['status'] = r.status_code
+            rets.append(a)
+        loc_tok = getToken()
+        jobs[loc_tok] = rets
 
-        return render_template('result.html', func_call=func_call, res=rets, ar=args)
+        return render_template('result.html', func_call=func_call, res=rets, ar=args, token = loc_tok)
     #return r.json()
 
     
@@ -81,16 +91,17 @@ def checkHosts():
             sys.exit(1)
 
         alive = {}
+        bwts = {}
         for h in hosts:
             try:
-                r = requests.get('http://' + h + '/checkAlive?args=[]')
+                r = requests.get('http://' + h + '/checkAlive')
                 j = r.json()
                 # #print(j)
                 # if(j['alive']):
                 if r.status_code == 200:
                     #print(j)
                     alive[h] = j
-                bwts = {}
+                
                 for key in alive.keys():
                     #bwts[alive[key]['name']] = msb.loadBWTCloud('http://' + key)
                     bwts[alive[key]['name']] = 'http://' + key
@@ -105,7 +116,14 @@ def makeRequest(name, func, args, maps):
                 'args' : args
     }
     r = requests.get(target + '/' + func, params = para)
-    return r.json()
+    return r
+
+def getToken():
+    alphabet = string.ascii_letters + string.digits
+    t = ""
+    for i in range(15):
+        t = t + random.choice(alphabet)
+    return t
 
 
     
