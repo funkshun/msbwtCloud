@@ -44,10 +44,12 @@ def create_app(test_config=None):
     app.config['BWT_ROOT'] = '/opt/msbwt/CC027M756_UNC_NYGC/'
     app.config['BWT'] = MSBWT.loadBWT(app.config['BWT_ROOT'])
     app.config['data'] = {
-        'name': app.config['BWT_ROOT'].strip().split("/").strip()[-2],
+        'name': app.config['BWT_ROOT'].strip().split("/")[-2].strip(),
         'description': "",
         'load': 0
     }
+
+    waiting = {}
     
     
     
@@ -59,7 +61,7 @@ def create_app(test_config=None):
         if func_call == 'checkAlive':
             try:
                 if app.config['BWT'].countOccurrencesOfSeq('T') > 0:
-                    return Response(json.dump(app.config['data']), status=200)
+                    return Response(json.dumps(app.config['data']), status=200)
                 else:
                     return Response(status=500)
             except:
@@ -87,7 +89,7 @@ def create_app(test_config=None):
                 'args': args,
                 'kwargs': kwargs
             }
-            return Response(json.dump(summary), status=st)
+            return Response(json.dumps(summary), status=st)
             
             
     return app
