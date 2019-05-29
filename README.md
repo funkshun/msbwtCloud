@@ -13,17 +13,101 @@ A paired server combination implemented with Flask. msbwtCloud provides an RESTf
 
 msBWTCloud provides the primary interface for interacting with remote BWT data structures. The following functions are exposed at:
 
-`/<function_name>?args=[args_list]`
+`/<function_name>?args=[args_list]&kwargs={kwargs_list}`
+
+### Status Codes
+
+`202`: Query properly received and queued  
+`400`: Improper arguments  
+`404`: Function not found
 
 ### countOccurrencesOfSeq
 
 Queries the number of times a sequence occurrs in the target dataset.
 
 - Arguments  
-    `"seq"`: the target sequence to be counted
+    `seq::String`: the target sequence to be counted  
+    `givenRange::(Long, Long)`: (OPTIONAL) Restricts the query to the given range
 - Sample Call  
 `http://test.test/countOccurrencesOfSeq?args=["CATAGAT"]`  
-Queries the number of occurrences of `CATAGAT` in the dataset held by `test.test`
+Queries the number of occurrences of `CATAGAT` between
+`1346091641L` and `15700916349L` in the dataset held by `test.test`
+
+### recoverString
+
+Queries the string at the index given in the target dataset.
+
+- Arguments  
+    `index::Integer`: the target sequence to be counted  
+- Sample Call  
+`http://test.test/recoverString?args=[426689]`  
+Queries the string at index `426689` in the dataset held by `test.test`
+
+### findIndicesOfStr
+
+Queries the index if the given string.
+
+- Arguments  
+    `seq::String`: the target sequence to be counted  
+    `givenRange::(Long, Long)`: (OPTIONAL) Restricts the query to the given range  
+- Sample Call  
+`http://test.test/findIndicesOfStr?args=["CATAGAT"]`  
+Queries the dataset for the index for the string `CATAGAT` in the dataset held by `test.test`
+
+### getSequenceDollarID
+
+Queries the BWT end marker index for the given sequence
+
+- Arguments  
+    `seq::String`: the target sequence to be counted  
+    `returnOffset::Boolean`: (OPTIONAL - defaults to false) True will query the offset
+- Sample Call  
+`http://test.test/getSequenceDollarID?args=["CATAGAT"]`  
+Queries the dataset for the index for the string `CATAGAT` in the dataset held by `test.test`
+
+### Optional Arguments
+
+Optional arguments may be specified as an additional url parameter in the form:  
+`&argument_name=argument_value`  
+after the `args` parameter
+
+#### Example
+
+`http://test.test/getSequenceDollarID?args=["CATAGAT"]&returnOffset=True` 
+
+### Batch Queries
+
+The following batch functions queue several queries of the same type under a single token
+
+#### batchRecoverString
+
+Queries all strings in the given range of indices
+
+- Arguments  
+    `startIndex:Long`: the start of the range of indices to be queried  
+    `endIndex:Long`: the end of the range of indices to be queried  
+    `returnOffset::Boolean`: (OPTIONAL - defaults to false) True will query the offset
+- Sample Call  
+`http://test.test/batchRecoverString?args=[1346091641L, 15700916349L]`
+
+#### batchCountOccurrencesOfSeq
+
+Queries counts of a list of sequences
+
+- Arguments  
+    `seqList::List<String>`: List of sequences to be counted  
+    `givenRange::(Long, Long)`: (OPTIONAL) Restricts the query to the given range
+- Sample Call  
+`http://test.test/batchCountOccurrencesOfSeq?args=['CATAGAT', 'GATTACA']`
+
+#### batchFastCountOccurrences
+
+OptimiOfSeqzed Routine to count occurrences of a list of sequences
+
+- Arguments  
+    `seqList::List<String>`: List of sequences to be counted  
+- Sample Call  
+`http://test.test/batchFastCountOccurrences?args=['CATAGAT', 'GATTACA']`
 
 ### Return Structure
 
@@ -39,7 +123,7 @@ The functions above do not directly return their results to prevent blocking on 
     "kwargs"  : {},
     "data"    :{
                 "name"        : "CC027M756_UNC_NYGC",
-                "description" : "Collaborative Cross Dataset 27 Male"
+                "description" : "Collaborative Cross Dataset 27 Male",
                 "load"        : 4
     }
 }
@@ -50,6 +134,11 @@ The functions above do not directly return their results to prevent blocking on 
 The status of a query can be obtained using the token value returned by the above functions. The token is passed to the url:  
 
 `/results/<token>`
+
+#### Status Codes
+
+`200`: Successfully retrieved token status  
+`404`: Token not found  
 
 #### Sample Results JSON for Running Query
 
@@ -63,7 +152,7 @@ The status of a query can be obtained using the token value returned by the abov
     "result"  : null,
     "data"    :{
                 "name"        : "CC027M756_UNC_NYGC",
-                "description" : "Collaborative Cross Dataset 27 Male"
+                "description" : "Collaborative Cross Dataset 27 Male",
                 "load"        : 4
     }
 }
@@ -81,7 +170,7 @@ The status of a query can be obtained using the token value returned by the abov
     "result"  : 9327856,
     "data"    :{
                 "name"        : "CC027M756_UNC_NYGC",
-                "description" : "Collaborative Cross Dataset 27 Male"
+                "description" : "Collaborative Cross Dataset 27 Male",
                 "load"        : 4
     }
 }
@@ -99,7 +188,7 @@ The status of a query can be obtained using the token value returned by the abov
     "result"  : "ValueError: countOccurrencesOfSeq takes exactly one argument",
     "data"    :{
                 "name"        : "CC027M756_UNC_NYGC",
-                "description" : "Collaborative Cross Dataset 27 Male"
+                "description" : "Collaborative Cross Dataset 27 Male",
                 "load"        : 4
     }
 }

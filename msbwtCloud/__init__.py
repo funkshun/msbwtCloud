@@ -12,7 +12,7 @@ from flask import Flask
 from flask import Response
 from flask import request
 from flask import render_template
-from apscheduler.schedulers.background import BackgroundScheduler
+#from apscheduler.schedulers.background import BackgroundScheduler
 #from multiprocessing.pool import ThreadPool
 from threading import Thread
 from MUSCython import MultiStringBWTCython as MSBWT
@@ -79,13 +79,17 @@ def create_app(test_config=None):
 
         else:
             args = request.args.get('args', None)
+            kwargs = request.args.get('kwargs', None)
             if args is None:
                 return Response(status=400)
             
             # positional arguments
             args = ast.literal_eval(args.encode('utf-8'))
+            if kwargs is not None:
+                kwargs = ast.literal_eval(kwargs.encode('utf-8'))
+            else:
+                kwargs = {}
             # keyword arguments
-            kwargs = {}
             tok = getToken()
             st = 405
             #try:
@@ -110,6 +114,8 @@ def create_app(test_config=None):
 
     @app.route('/results/<token>')
     def results(token):
+
+        # Retrieve Token status from Results
         try:
             token = token.encode('ascii', 'ignore')
             j = results_lst[token]
@@ -118,9 +124,12 @@ def create_app(test_config=None):
                     'status': j['status'],
                     'function': j['func'],
                     'args': j['args'],
-                    'kwargs': j['kwargs']}
+                    'kwargs': j['kwargs'],
+                    'data': app.config['data']}
             
             return Response(json.dumps(data), status = 200)
+
+        #Token Not Found        
         except Exception as e:
             print(e)
             return Response(status = 404)
