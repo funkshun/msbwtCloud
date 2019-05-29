@@ -5,6 +5,7 @@ import requests
 import ast
 import datetime as dt
 import time
+import msbwtCloud.db as db_func
 #import secrets
 import random
 import string
@@ -12,11 +13,12 @@ from flask import Flask
 from flask import Response
 from flask import request
 from flask import render_template
-#from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 #from multiprocessing.pool import ThreadPool
 from threading import Thread
 from MUSCython import MultiStringBWTCython as MSBWT
 from fastBatchKmerCounter import generate_counts as fastBatchKmerCounts
+
 
 
 def create_app(test_config=None):
@@ -52,10 +54,19 @@ def create_app(test_config=None):
         'description': "",
         'load': 0
     }
+    
+    app.config['DB'] = db_func.create_db('msbwt.sqlite')
+    results_lst = {}
+    
+    # time before deleting in memory results of a query in minutes
+    #app.config['LOCAL_QUERY_LIFE'] = 5
+    # Lifetime of queries in the database (days)
+    app.config['DB_QUERY_LIFE'] = 2
+    app.config['scheduler'] = BackgroundScheduler()
+    #app.config['scheduler'].add_job(_cleanQueries, 'interval', minutes=20)
+    app.config['scheduler'].add_job(_cleanQueriesDB, 'interval', minutes=20)
 
     
-    results_lst = {}
-    #pool = ThreadPool(processes=2)
     
     """
         Primary Function Route
@@ -118,9 +129,9 @@ def create_app(test_config=None):
         # Retrieve Token status from Results
         try:
             token = token.encode('ascii', 'ignore')
-            j = results_lst[token]
+            j = db_func.retrieve_token(app.config['DB'], token)
             data = {'result': j['result'], 
-                    'date': j['date'].strftime("%m/%d/%Y, %H:%M:%S"), 
+                    'date': j['date'].strftime("%Y-%m-%d, %H:%M:%S"), 
                     'status': j['status'],
                     'function': j['func'],
                     'args': j['args'],
@@ -192,7 +203,36 @@ def create_app(test_config=None):
 
         results_lst[token]['status'] = 'SUCCESS'
         results_lst[token]['done'] = True
+
+        db_func.insert_task(app.config['DB'], 
+                            token, 
+                            results_lst[token] 
+                            ,results_lst[token]['date'].strftime("%Y-%m-%d, %H:%M:%S"))
         return
+
+    def _cleanQueries():
+        now = dt.datetime.now()
+        for key, value in results_lst:
+            delta = now - value['date']
+            if (3600 * delta.days + delta.seconds > app.config['QUERY_LIFE'] * 3600):
+                del results_lst[key]
+            else:
+                continue
+        return
+
+    def _cleanQueriesDB():
+        clean_sql = \
+            """
+            DELETE FROM tasks WHERE start_date < DATEADD(day, ?, GETDATE());
+            """
+        try:
+            c = app.config['DB'].cursor()
+            c.execute(clean_sql, (0 - app.config['DB_QUERY_LIFE']))
+
+        except Exception as e:
+            print(e)
+        return
+
 
             
             

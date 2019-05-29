@@ -102,7 +102,7 @@ Queries counts of a list of sequences
 
 #### batchFastCountOccurrences
 
-OptimiOfSeqzed Routine to count occurrences of a list of sequences
+Optimized Routine to count occurrences of a list of sequences
 
 - Arguments  
     `seqList::List<String>`: List of sequences to be counted  
