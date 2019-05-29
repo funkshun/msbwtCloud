@@ -5,7 +5,7 @@ def create_db(db_file):
     try:
         conn = sqlite3.connect(db_file)
         return conn
-    except Error as e:
+    except Exception as e:
         print(e)
     
 
