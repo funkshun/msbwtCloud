@@ -84,7 +84,7 @@ def create_app(test_config=None):
             st = 405
             #try:
             
-            tmp = pool.apply_async(target = '_run' args = (func_call, args, kwargs, app.config['BWT'], tok))
+            tmp = pool.apply_async(_run, args = (func_call, args, kwargs, app.config['BWT'], tok))
             st = 200
             #except:
              #   st = 405
