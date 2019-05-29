@@ -14,6 +14,7 @@ from flask import request
 from flask import render_template
 from apscheduler.schedulers.background import BackgroundScheduler
 from multiprocessing.pool import ThreadPool
+from threading import Thread
 from MUSCython import MultiStringBWTCython as MSBWT
 
 
@@ -83,8 +84,10 @@ def create_app(test_config=None):
             tok = getToken()
             st = 405
             #try:
-            
-            tmp = pool.apply_async(_run, args = (func_call, args, kwargs, app.config['BWT'], tok))
+            results_lst[tok] = {}
+            results_lst[tok]['thread'] = Thread(target = _run, args = (func_call, args, kwargs, app.config['BWT'], tok))
+            results_lst[tok]['thread'].start()
+            #tmp = pool.apply_async(_run, args = (func_call, args, kwargs, app.config['BWT'], tok))
             st = 200
             #except:
              #   st = 405
@@ -100,9 +103,10 @@ def create_app(test_config=None):
     @app.route('/results/<token>')
     def results(token):
         try:
+            token = token.encode('ascii', 'ignore')
             j = results_lst[token]
             data = {'result': j['result'], 'date': j['date'].strftime("%m/%d/%Y, %H:%M:%S"), 'status': j['status']}
-            if j.done and j.status == 'SUCCESS':
+            if j['done'] and j['status'] == 'SUCCESS':
                 data['result'] = j['result']
             return Response(json.dumps(data), status = 200)
         except Exception as e:
@@ -114,7 +118,7 @@ def create_app(test_config=None):
         results_lst = {}
         return Response(status=200)
 
-    def _run(self, func_call, args, kwargs, bwt, token):
+    def _run( func_call, args, kwargs, bwt, token):
         results_lst[token] = {}
         results_lst[token]['done'] = False
         results_lst[token]['date'] = dt.datetime.now()
@@ -130,7 +134,7 @@ def create_app(test_config=None):
             elif func_call == 'testr':
                 x = int(args[0])
                 time.sleep(x)
-                results_lst[token]['result'] = "Slept " + x + " seconds"
+                results_lst[token]['result'] = "Slept " + str(x) + " seconds"
                 results_lst[token]['status'] = 'SUCCESS'
         except Exception as e:
             print(e)
@@ -149,28 +153,6 @@ def getToken():
         t = t + random.choice(alphabet)
     return t
 
-
-
-    def __init__(self):
-        Thread.__init__(self)
-        
-
-
-        
-        
-
-
-
-
-
-
-            
-            
-    
-
-    
-
-        
 
 
 
