@@ -13,7 +13,7 @@ from flask import Response
 from flask import request
 from flask import render_template
 from apscheduler.schedulers.background import BackgroundScheduler
-from threading import Thread
+from multiprocessing.pool import ThreadPool
 from MUSCython import MultiStringBWTCython as MSBWT
 
 
@@ -53,6 +53,7 @@ def create_app(test_config=None):
 
     
     results_lst = {}
+    pool = ThreadPool(processes=2)
     
     
     
@@ -82,8 +83,8 @@ def create_app(test_config=None):
             tok = getToken()
             st = 405
             #try:
-            results_lst[tok] = Jobber()
-            results_lst[tok].run(func_call, args, kwargs, app.config['BWT'])
+            
+            tmp = pool.apply_async(target = '_run' args = (func_call, args, kwargs, app.config['BWT'], tok))
             st = 200
             #except:
              #   st = 405
@@ -100,9 +101,9 @@ def create_app(test_config=None):
     def results(token):
         try:
             j = results_lst[token]
-            data = {'result': j.result, 'date': j.date.strftime("%m/%d/%Y, %H:%M:%S"), 'status': j.status}
+            data = {'result': j['result'], 'date': j['date'].strftime("%m/%d/%Y, %H:%M:%S"), 'status': j['status']}
             if j.done and j.status == 'SUCCESS':
-                data['result'] = j.result
+                data['result'] = j['result']
             return Response(json.dumps(data), status = 200)
         except Exception as e:
             print(e)
@@ -112,6 +113,30 @@ def create_app(test_config=None):
     def purge():
         results_lst = {}
         return Response(status=200)
+
+    def _run(self, func_call, args, kwargs, bwt, token):
+        results_lst[token] = {}
+        results_lst[token]['done'] = False
+        results_lst[token]['date'] = dt.datetime.now()
+        results_lst[token]['result'] = None
+        results_lst[token]['status'] = 'RUNNING'
+        try:  
+            available = dir(bwt)
+            if func_call in available:
+                f = getattr(bwt, func_call)
+                result = f(*args, **kwargs)
+                results_lst[token]['result'] = result
+                results_lst[token]['status'] = 'SUCCESS'
+            elif func_call == 'testr':
+                x = int(args[0])
+                time.sleep(x)
+                results_lst[token]['result'] = "Slept " + x + " seconds"
+                results_lst[token]['status'] = 'SUCCESS'
+        except Exception as e:
+            print(e)
+            results_lst[token]['status'] = 'FAILED'
+
+        results_lst[token]['done'] = True
 
             
             
@@ -124,37 +149,17 @@ def getToken():
         t = t + random.choice(alphabet)
     return t
 
-class Jobber(Thread):
+
 
     def __init__(self):
         Thread.__init__(self)
-        self.done = False
-        self.date = dt.datetime.now()
-        self.result = None
-        self.status = 'RUNNING'
+        
 
 
         
         
 
-    def run(self, func_call, args, kwargs, bwt):
-        try:  
-            available = dir(bwt)
-            if func_call in available:
-                f = getattr(bwt, func_call)
-                result = f(*args, **kwargs)
-                self.result = result
-                self.status = 'SUCCESS'
-            elif func_call == 'testr':
-                x = int(args[0])
-                time.sleep(x)
-                self.result = "Slept " + x + " seconds"
-                self.status = 'SUCCESS'
-        except Exception as e:
-            print(e)
-            self.status = 'FAILED'
 
-        self.done = True
 
 
 
