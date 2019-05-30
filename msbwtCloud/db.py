@@ -1,5 +1,6 @@
 import sqlite3
 import json
+import datetime
 results_tbl_sql = \
 """
 CREATE TABLE IF NOT EXISTS tasks (
@@ -23,14 +24,18 @@ def insert_task(conn, token, dic, date_str):
 
     insert_token_sql = \
     """
-        INSERT INTO tasks(token, json) VALUES(?,?);
+        INSERT INTO tasks(token, json, start_date) VALUES(?,?,?);
     """
    
     try:
+        dic['date'] = dic['date'].strftime('%Y-%m-%d %H:%M:%S')
         vals = (token, json.dumps(dic), date_str)
         c = conn.cursor()
         c.execute(insert_token_sql, vals)
         return c.lastrowid
+    except Exception as e:
+        print(e)
+        return None
 
 def retrieve_token(conn, token):
 
@@ -43,8 +48,9 @@ def retrieve_token(conn, token):
         c = conn.cursor()
         c.execute(retrieve_token_sql, (token, ))
         rows = c.fetchall()
-
+        print(len(rows))
         return {rows[0][1]:json.loads(rows[0][2])}
+
     except Exception as e:
         print(e)
 
