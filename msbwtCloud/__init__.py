@@ -6,19 +6,17 @@ import ast
 import datetime as dt
 import time
 import sqlite3
-import msbwtCloud.db as db_func
-#import secrets
-import random
+from msbwtCloud.db import *
+import secrets
 import string
 from flask import Flask
 from flask import Response
 from flask import request
 from flask import render_template
 from apscheduler.schedulers.background import BackgroundScheduler
-#from multiprocessing.pool import ThreadPool
 from threading import Thread
 from MUSCython import MultiStringBWTCython as MSBWT
-from fastBatchKmerCounter import generate_counts as fastBatchKmerCounts
+from msbwtCloud.fastBatchKmerCounter import generate_counts as fastBatchKmerCounts
 
 
 
@@ -41,15 +39,8 @@ def create_app(test_config=None):
     """
 
     app = Flask(__name__, instance_relative_config = True)
-    app.config.from_mapping(
-        SECRET_KEY = 'dev',
-        DATABASE = os.path.join(app.instance_path, 'msbwt.sqlite'),
-    )
-
-    if test_config is None:
-        app.config.from_pyfile('config.py', silent=True)
-    else:
-        app.config.from_mapping(test_config)
+    
+    app.config.from_object('msbwtCloud.config')
     
     try:
         os.makedirs(app.instance_path)
@@ -60,22 +51,12 @@ def create_app(test_config=None):
     """
         BWT Configuration, should be moved to config file
     """
-    app.config['BWT_ROOT'] = '/opt/msbwt/CC027M756_UNC_NYGC/'
+    
     app.config['BWT'] = MSBWT.loadBWT(app.config['BWT_ROOT'])
-    app.config['data'] = {
-        'name': app.config['BWT_ROOT'].strip().split("/")[-2].strip(),
-        'description': "",
-        'load': 0
-    }
-    app.config['DB_ROOT'] = app.config['BWT_ROOT'] + 'msbwt.sqlite'   
-    #app.config['DB'] = db_func.create_db(app.config['DB_ROOT'])
+    
     results_lst = {}
     
-    # time before deleting in memory results of a query in minutes
-    #app.config['LOCAL_QUERY_LIFE'] = 5
-    # Lifetime of queries in the database (days)
-    app.config['DB_QUERY_LIFE'] = 2
-    app.config['scheduler'] = BackgroundScheduler()
+    #app.config['scheduler'] = BackgroundScheduler()
     #app.config['scheduler'].add_job(_cleanQueries, 'interval', minutes=20)
     #app.config['scheduler'].add_job(_cleanQueriesDB, 'interval', minutes=20)
 
@@ -142,7 +123,7 @@ def create_app(test_config=None):
         # Retrieve Token status from Results
         try:
             token = token.encode('ascii', 'ignore')
-            j = db_func.retrieve_token(sqlite3.connect(app.config['DB_ROOT']), token)
+            j = retrieve_token(connect_db(app.config['DB_ROOT']), token)
             data = {'result': j['result'], 
                     'date': j['date'].strftime("%Y-%m-%d, %H:%M:%S"), 
                     'status': j['status'],
@@ -207,17 +188,18 @@ def create_app(test_config=None):
             elif func_call == 'batchFastCountOccurrencesOfSeq':
                 results_lst[token]['result'] = fastBatchKmerCounts(bwt, args)
 
+            results_lst[token]['status'] = 'SUCCESS'
+            results_lst[token]['done'] = True
 
         except Exception as e:
             results_lst[token]['result'] = e.message
             results_lst[token]['status'] = 'FAILED'
             results_lst[token]['done'] = True
-            return
+            
 
-        results_lst[token]['status'] = 'SUCCESS'
-        results_lst[token]['done'] = True
+        
 
-        db_func.insert_task(sqlite3.connect(app.config['DB_ROOT']), 
+        insert_task(connect_db(app.config['DB_ROOT']), 
                             token, 
                             results_lst[token], 
                             results_lst[token]['date'].strftime("%Y-%m-%d, %H:%M:%S"))
@@ -227,23 +209,19 @@ def create_app(test_config=None):
         now = dt.datetime.now()
         for key, value in results_lst:
             delta = now - value['date']
-            if (3600 * delta.days + delta.seconds > app.config['QUERY_LIFE'] * 3600):
+            if (86400 * delta.days + delta.seconds > app.config['QUERY_LIFE'] * 86400):
                 del results_lst[key]
             else:
                 continue
         return
-
-
-
-            
-            
+       
     return app
 
 def getToken():
     alphabet = string.ascii_letters + string.digits
     t = ""
     for i in range(15):
-        t = t + random.choice(alphabet)
+        t = t + secrets.choice(alphabet)
     return t
 
 

@@ -11,11 +11,12 @@ import argparse
 import socket
 import itertools
 
+import platform
 
 def bwtsort(atup, btup):
     aseq = atup[0]
     bseq = btup[0]
-    for i in xrange(len(aseq)):
+    for i in range(len(aseq)):
         abase = aseq[-1-i]
         bbase = bseq[-1-i]
         if (abase > bbase):
@@ -41,7 +42,7 @@ def gatherProbes(pf):
 def sharedPrefixLength(s1, s2):
     # Find the shared prefix length between s1 and s2
     p = 0
-    for i in xrange(min(len(s1), len(s2))):
+    for i in range(min(len(s1), len(s2))):
         if s1[i] == s2[i]:
             p += 1
         else:
@@ -114,6 +115,8 @@ def generate_counts(msbwt, queries):
         counts[counter] = count
         counter += 1
     countsUnsorted = np.empty((len(counts)), dtype='int32')
-    for i in xrange(len(counts)):
+    for i in range(len(counts)):
         countsUnsorted[indicesSorted[i]] = counts[i]
     return countsUnsorted.tolist()
+
+print(platform.python_version())
