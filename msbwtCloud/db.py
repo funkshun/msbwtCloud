@@ -23,7 +23,7 @@ def insert_task(conn, token, dic, date_str):
 
     insert_token_sql = \
     """
-        INSERT INTO tasks(token, json) VALUES(?,?);
+        INSERT INTO tasks(token, json) VALUES(?,?,?);
     """
    
     try:
