@@ -1,8 +1,15 @@
-# msBWT Server and Cloud
+# msBWT Cloud
 
-## msBWT RESTful interface and Name Resolution
+## msBWT RESTful interface
 
-A paired server combination implemented with Flask. msbwtCloud provides an RESTful interface for non-blocking requests to a remote msBWT data structure. Queries return a token and summary and results can be retrieved by providing the token. msbwtServer provides name resolution and management for multiple remote msBWT structures including status checking, dynamic response to resource movement, and a basic web interface.
+msbwtCloud provides an RESTful interface for non-blocking requests to a remote msBWT data structure.
+Queries return a request token and summary and results can be retrieved by providing the token at the results api endpoint.
+This is intended to bypass the issues present in current versions of remote BWT access, namely blocking requests and large IO overhead.
+Current implementations rely on transmitting the BWT across a local network to the server assigned to a query, a process which may account for more than 50% of the total request time.
+Furthermore, each of these requests blocks until completion preventing the start of additional related queries, a typical use case.
+This solves these issues by assigning each BWT to the local storage of a low cost machine,
+and by allowing for the acquisition of results based on tokenization rather than a blocking response.
+This also trivialize the storage of query results, preventing wasted computational resources on repeated queries.
 
 ## Installation
 
