@@ -7,3 +7,4 @@ env/
 instance/
 .vscode/
 msbwtCloud/config.py
+dist/

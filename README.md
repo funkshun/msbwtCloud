@@ -9,7 +9,7 @@ Current implementations rely on transmitting the BWT across a local network to t
 Furthermore, each of these requests blocks until completion preventing the start of additional related queries, a typical use case.
 This solves these issues by assigning each BWT to the local storage of a low cost machine,
 and by allowing for the acquisition of results based on tokenization rather than a blocking response.
-This also trivialize the storage of query results, preventing wasted computational resources on repeated queries.
+This also trivializes the storage of query results, preventing wasted computational resources on repeated queries.
 
 ## Installation
 
