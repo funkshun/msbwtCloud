@@ -14,7 +14,9 @@ This also trivializes the storage of query results, preventing wasted computatio
 ## Installation
 
 - Clone this repository on to the device hosting the BWT datastructure.
-- TODO
+- Change `config.py` values to match desired values
+- Run `python setup.py install`
+- Run `waitress-serve --call 'msbwtCloud:create_app'` to create server on port 8080
 
 ## msBWTCloud
 
