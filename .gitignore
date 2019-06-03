@@ -6,3 +6,4 @@ venv
 env/
 instance/
 .vscode/
+msbwtCloud/config.py
