@@ -1,0 +1,5 @@
+flask
+requests
+waitress
+apscheduler
+msbwt==0.3.0
