@@ -8,3 +8,5 @@ instance/
 .vscode/
 msbwtCloud/config.py
 dist/
+build/
+msbwtCloud.egg-info
