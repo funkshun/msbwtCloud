@@ -105,7 +105,7 @@ Queries counts of a list of sequences
     `seqList::List<String>`: List of sequences to be counted  
     `givenRange::(Long, Long)`: (OPTIONAL) Restricts the query to the given range
 - Sample Call  
-`http://test.test/batchCountOccurrencesOfSeq?args=['CATAGAT', 'GATTACA']`
+`http://test.test/batchCountOccurrencesOfSeq?args=["CATAGAT", "GATTACA"]`
 
 #### batchFastCountOccurrences
 

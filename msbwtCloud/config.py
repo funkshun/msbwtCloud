@@ -12,7 +12,7 @@ DATA = {
 #### BWT ####
 
 # Location of the BWT (Full path with trailing '/')
-BWT_ROOT = '/home/a2/msbwtStorage/CC027M756_UNC_NYGC/'.encode('ascii', 'ignore')
+BWT_ROOT = '/home/a2/msbwtStorage/CC027M756_UNC_NYGC/'.encode('utf-8', 'ignore')
 
 ##### DATABASE ####
 

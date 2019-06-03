@@ -22,18 +22,6 @@ from msbwtCloud.fastBatchKmerCounter import generate_counts as fastBatchKmerCoun
 
 def create_app(test_config=None):
 
-    def _cleanQueriesDB():
-        clean_sql = \
-            """
-            DELETE FROM tasks WHERE start_date < DATEADD(day, ?, GETDATE());
-            """
-        try:
-            c = app.config['DB'].cursor()
-            c.execute(clean_sql, (0 - app.config['DB_QUERY_LIFE']))
-
-        except Exception as e:
-            print(e)
-        return
     """
         Flask Boilerplate
     """
@@ -41,12 +29,13 @@ def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config = True)
     
     app.config.from_object('msbwtCloud.config')
+
+    create_db(app.config['DB_ROOT'])
     
     try:
         os.makedirs(app.instance_path)
     except OSError:
         pass
-
 
     """
         BWT Configuration, should be moved to config file
@@ -76,7 +65,7 @@ def create_app(test_config=None):
         if func_call == 'checkAlive':
             try:
                 if app.config['BWT'].countOccurrencesOfSeq('T') > 0:
-                    return Response(json.dumps(app.config['data']), status=200)
+                    return Response(json.dumps(app.config['DATA']), status=200)
                 else:
                     return Response(status=500)
             except:
@@ -89,27 +78,29 @@ def create_app(test_config=None):
                 return Response(status=400)
             
             # positional arguments
-            args = ast.literal_eval(args.encode('utf-8'))
+            #args = ast.literal_eval(args.encode('ascii'))
+            args = ast.literal_eval(args) #.encode('utf-8', 'ignore'))
+            
+            #args = 
             if kwargs is not None:
-                kwargs = ast.literal_eval(kwargs.encode('utf-8'))
+                kwargs = ast.literal_eval(kwargs)
             else:
                 kwargs = {}
             # keyword arguments
             tok = getToken()
             st = 405
-            #try:
-            results_lst[tok] = {}
-            results_lst[tok]['thread'] = Thread(target = _run, args = (func_call, args, kwargs, app.config['BWT'], tok))
-            results_lst[tok]['thread'].start()
-            results_lst[tok]['func'] = func_call
-            results_lst[tok]['args'] = args
-            results_lst[tok]['kwargs'] = kwargs
-            #tmp = pool.apply_async(_run, args = (func_call, args, kwargs, app.config['BWT'], tok))
-            st = 200
-            #except:
-             #   st = 405
+            try:
+                results_lst[tok] = {}
+                results_lst[tok]['thread'] = Thread(target = _run, args = (func_call, args, kwargs, app.config['BWT'], tok))
+                results_lst[tok]['thread'].start()
+                results_lst[tok]['func'] = func_call
+                results_lst[tok]['args'] = args
+                results_lst[tok]['kwargs'] = kwargs
+                st = 200
+            except:
+                st = 405
             summary = {
-                'data': app.config['data'],
+                'data': app.config['DATA'],
                 'token': tok,
                 'function': func_call,
                 'args': args,
@@ -125,12 +116,12 @@ def create_app(test_config=None):
             token = token.encode('ascii', 'ignore')
             j = retrieve_token(connect_db(app.config['DB_ROOT']), token)
             data = {'result': j['result'], 
-                    'date': j['date'].strftime("%Y-%m-%d, %H:%M:%S"), 
+                    'date': j['date'], 
                     'status': j['status'],
                     'function': j['func'],
                     'args': j['args'],
                     'kwargs': j['kwargs'],
-                    'data': app.config['data']}
+                    'data': app.config['DATA']}
             
             return Response(json.dumps(data), status = 200)
 
@@ -141,6 +132,7 @@ def create_app(test_config=None):
 
     @app.route('/purge')
     def purge():
+        purge_db(connect_db(app.config['DB_ROOT']))
         results_lst = {}
         return Response(status=200)
 
@@ -157,11 +149,11 @@ def create_app(test_config=None):
         try:  
             
             available = dir(bwt)
-            
+            args_b = [a.encode('utf-8', 'ignore') for a in args]
             # Handles Basic BWT functions
             if func_call in available:
                 f = getattr(bwt, func_call)
-                result = f(*args, **kwargs)
+                result = f(*args_b, **kwargs)
                 results_lst[token]['result'] = result
             
             # Long running job for testing non-blocking properties
@@ -192,9 +184,10 @@ def create_app(test_config=None):
             results_lst[token]['done'] = True
 
         except Exception as e:
-            results_lst[token]['result'] = e.message
+            results_lst[token]['result'] = 'No Result'
             results_lst[token]['status'] = 'FAILED'
             results_lst[token]['done'] = True
+            print(e)
             
 
         
@@ -203,16 +196,8 @@ def create_app(test_config=None):
                             token, 
                             results_lst[token], 
                             results_lst[token]['date'].strftime("%Y-%m-%d, %H:%M:%S"))
-        return
+        del results_lst[token]
 
-    def _cleanQueries():
-        now = dt.datetime.now()
-        for key, value in results_lst:
-            delta = now - value['date']
-            if (86400 * delta.days + delta.seconds > app.config['QUERY_LIFE'] * 86400):
-                del results_lst[key]
-            else:
-                continue
         return
        
     return app

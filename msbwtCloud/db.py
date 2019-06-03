@@ -16,7 +16,8 @@ def create_db(db_file):
         conn = sqlite3.connect(db_file)
         c = conn.cursor()
         c.execute(results_tbl_sql)
-        return conn
+        conn.commit()
+        #return conn
     except Exception as e:
         print(e)
 
@@ -30,6 +31,8 @@ def connect_db(db_file):
         return None
 
 def insert_task(conn, token, dic, date_str):
+
+    print('inserting task')
 
     insert_token_sql = \
     """
@@ -56,12 +59,22 @@ def retrieve_token(conn, token):
 
     try:
         c = conn.cursor()
-        c.execute(retrieve_token_sql, (token, ))
+        c.execute(retrieve_token_sql, (token.decode('ascii'),))
         rows = c.fetchall()
-        print(len(rows))
-        return {rows[0][1]:json.loads(rows[0][2])}
+        #print(len(rows))
+        return json.loads(rows[0][2])
 
     except Exception as e:
+        print(e)
+
+def purge_db(conn):
+
+    try:
+        c = conn.curson()
+        c.execute("DELETE FROM tasks where token = *")
+        conn.commit()
+    except Exception as e:
+        print("Failed to purge")
         print(e)
 
     
