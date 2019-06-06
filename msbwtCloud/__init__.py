@@ -86,6 +86,10 @@ def create_app(test_config=None):
                 kwargs = ast.literal_eval(kwargs)
             else:
                 kwargs = {}
+            async_flag = request.args.get('async', None)
+            if async_flag is None or async_flag.lower() == 'false':
+                r = _runLegacy(func_call, args, kwargs, app.config['BWT'])
+                return Response(json.dumps({'result': r}), status=200)
             # keyword arguments
             tok = getToken()
             st = 405
@@ -199,6 +203,47 @@ def create_app(test_config=None):
         del results_lst[token]
 
         return
+
+
+    def _runLegacy( func_call, args, kwargs, bwt):
+
+        """
+            Initializes Job entry in Result List.
+        """
+        try:  
+            
+            available = dir(bwt)
+            args_b = [a.encode('utf-8', 'ignore') if isinstance(a, str) else a for a in args]
+            # Handles Basic BWT functions
+            if func_call in available:
+                f = getattr(bwt, func_call)
+                result = f(*args_b, **kwargs)
+                
+                
+            # Recovers all strings from range of indices, non-parallel
+            elif func_call == 'batchRecoverString':
+                recoverStrings = []
+                for index in range(args[0][0], args[0][1]):
+                    recoverStrings.append(bwt.recoverString(index).decode('utf-8'))
+                result = recoverStrings
+            
+            #Batch Sequence Counts, non parallel
+            elif func_call == 'batchCountOccurrencesOfSeq':
+                counts = []
+                for seq in args:
+                    counts.append(bwt.countOccurrencesOfSeq(seq))
+                result = counts
+
+            # Optimized Occurrence Count
+            elif func_call == 'batchFastCountOccurrencesOfSeq':
+                result = fastBatchKmerCounts(bwt, args)
+
+            return result
+
+        except Exception as e:
+            print(e)
+
+        return result
        
     return app
 
