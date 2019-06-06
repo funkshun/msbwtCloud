@@ -30,6 +30,10 @@ msBWTCloud provides the primary interface for interacting with remote BWT data s
 `400`: Improper arguments  
 `404`: Function not found
 
+### Additional Flags
+
+`async`: set this to true to enable the non-blocking functionality of the server. Omitting this flag or a false value will default to legacy blocking behavior for compatibility.
+
 ### countOccurrencesOfSeq
 
 Queries the number of times a sequence occurrs in the target dataset.
@@ -82,7 +86,7 @@ after the `args` parameter
 
 #### Example
 
-`http://test.test/getSequenceDollarID?args=["CATAGAT"]&returnOffset=True` 
+`http://test.test/getSequenceDollarID?args=["CATAGAT"]&returnOffset=True`
 
 ### Batch Queries
 
@@ -120,7 +124,23 @@ Optimized Routine to count occurrences of a list of sequences
 
 ### Return Structure
 
-The functions above do not directly return their results to prevent blocking on long running calls. Instead, a token is given that can be used to retrieve the status of a query.  
+#### Legacy Behavior
+
+The default behavior of this server emulates the functionality of previous implementations for compatibility.
+To enable the non-blocking features, pass the argument `async=true` in the API call.
+Queries made without the `async` flag will not be stored and the results are not retrievable outside of the initial return.  
+The legacy return is a json structure.
+
+```json
+    {
+        "result": "Return Value"
+    }
+```
+
+#### Async Behavior
+
+If the `async` flag is set to true, the functions above do not directly return their results to prevent blocking on long running calls.
+Instead, a token is given that can be used to retrieve the status of a query.  
 
 #### Sample Return JSON for countOccurrencesOfSeq
 
@@ -144,7 +164,7 @@ The status of a query can be obtained using the token value returned by the abov
 
 `/results/<token>`
 
-#### Status Codes
+#### Return Status Codes
 
 `200`: Successfully retrieved token status  
 `404`: Token not found  
