@@ -15,6 +15,7 @@ from flask import request
 from flask import render_template
 from apscheduler.schedulers.background import BackgroundScheduler
 from threading import Thread
+import asyncio
 from MUSCython import MultiStringBWTCython as MSBWT
 from msbwtCloud.fastBatchKmerCounter import generate_counts as fastBatchKmerCounts
 
@@ -155,10 +156,8 @@ def create_app(test_config=None):
             available = dir(bwt)
             args_b = [a.encode('utf-8', 'ignore') for a in args]
             # Handles Basic BWT functions
-            if func_call in available:
-                f = getattr(bwt, func_call)
-                result = f(*args_b, **kwargs)
-                results_lst[token]['result'] = result
+            if func_call in available:   
+                results_lst[token]['result'] = _baseFunc(func_call, args_b, kwargs, bwt)
             
             # Long running job for testing non-blocking properties
             elif func_call == 'testr':
@@ -168,10 +167,8 @@ def create_app(test_config=None):
                 
             # Recovers all strings from range of indices, non-parallel
             elif func_call == 'batchRecoverString':
-                recoverStrings = []
-                for index in range(args[0], args[1] + 1):
-                    recoverStrings.append(bwt.recoverString(index))
-                results_lst[token]['result'] = recoverStrings
+                
+                results_lst[token]['result'] = asyncio.gather(*[_baseFunc("recoverString", [i], kwargs, bwt) for i in range(args[0], args[1])])
             
             #Batch Sequence Counts, non parallel
             elif func_call == 'batchCountOccurrencesOfSeq':
@@ -192,9 +189,6 @@ def create_app(test_config=None):
             results_lst[token]['status'] = 'FAILED'
             results_lst[token]['done'] = True
             print(e)
-            
-
-        
 
         insert_task(connect_db(app.config['DB_ROOT']), 
                             token, 
@@ -203,6 +197,10 @@ def create_app(test_config=None):
         del results_lst[token]
 
         return
+    
+    async def _baseFunc(func_call, args, kwargs, bwt):
+        f = getattr(bwt, func_call)
+        return f(*args, **kwargs)
 
 
     def _runLegacy( func_call, args, kwargs, bwt):
@@ -214,30 +212,39 @@ def create_app(test_config=None):
             
             available = dir(bwt)
             args_b = [a.encode('utf-8', 'ignore') if isinstance(a, str) else a for a in args]
+            
+            #Establish async environment
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
             # Handles Basic BWT functions
             if func_call in available:
                 f = getattr(bwt, func_call)
                 result = f(*args_b, **kwargs)
                 
-                
-            # Recovers all strings from range of indices, non-parallel
-            elif func_call == 'batchRecoverString':
-                recoverStrings = []
-                for index in range(args[0][0], args[0][1]):
-                    recoverStrings.append(bwt.recoverString(index).decode('utf-8'))
-                result = recoverStrings
             
+            # # Recovers all strings from range of indices, non-parallel
+            # elif func_call == 'batchRecoverString':
+            #     recoverStrings = []
+            #     for index in range(args[0][0], args[0][1]):
+            #         recoverStrings.append(bwt.recoverString(index).decode('utf-8'))
+            #     result = recoverStrings
+
+            elif func_call == 'batchRecoverString':
+                calls = asyncio.gather(*[_baseFunc("recoverString", [i], kwargs, bwt) for i in range(args[0][0], args[0][1])])
+                result = loop.run_until_complete(calls)
+                result = [r.decode('utf-8') for r in result]
+
             #Batch Sequence Counts, non parallel
             elif func_call == 'batchCountOccurrencesOfSeq':
-                counts = []
-                for seq in args:
-                    counts.append(bwt.countOccurrencesOfSeq(seq))
-                result = counts
+                calls = asyncio.gather(*[_baseFunc("countOccurrencesOfSeq", [seq], kwargs, bwt) for seq in args])
+                result = loop.run_until_complete(calls)
 
             # Optimized Occurrence Count
             elif func_call == 'batchFastCountOccurrencesOfSeq':
                 result = fastBatchKmerCounts(bwt, args)
-
+            
+            loop.close()
             return result
 
         except Exception as e:
