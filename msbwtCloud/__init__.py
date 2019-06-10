@@ -33,7 +33,7 @@ def create_app(test_config=None):
 
     create_db(app.config['DB_ROOT'])
 
-    executor = ThreadPoolExecutor(max_workers=1)
+    executor = ThreadPoolExecutor(max_workers=app.config['QUERY_WORKERS'])
     
     try:
         os.makedirs(app.instance_path)
