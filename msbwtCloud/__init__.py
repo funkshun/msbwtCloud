@@ -17,6 +17,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from threading import Thread
 from MUSCython import MultiStringBWTCython as MSBWT
 from msbwtCloud.fastBatchKmerCounter import generate_counts as fastBatchKmerCounts
+from concurrent.futures import ThreadPoolExecutor
 
 
 
@@ -31,6 +32,8 @@ def create_app(test_config=None):
     app.config.from_object('msbwtCloud.config')
 
     create_db(app.config['DB_ROOT'])
+
+    executor = ThreadPoolExecutor(max_workers=1)
     
     try:
         os.makedirs(app.instance_path)
@@ -88,15 +91,16 @@ def create_app(test_config=None):
                 kwargs = {}
             async_flag = request.args.get('async', None)
             if async_flag is None or async_flag.lower() == 'false':
-                r = _runLegacy(func_call, args, kwargs, app.config['BWT'])
-                return Response(json.dumps({'result': r}), status=200)
+                ar = [func_call, args, kwargs, app.config['BWT']]
+                r = executor.submit(_runLegacy, *ar)
+                return Response(json.dumps({'result': r.result()}), status=200)
             # keyword arguments
             tok = getToken()
             st = 405
             try:
                 results_lst[tok] = {}
-                results_lst[tok]['thread'] = Thread(target = _run, args = (func_call, args, kwargs, app.config['BWT'], tok))
-                results_lst[tok]['thread'].start()
+                ar = [func_call, args, kwargs, app.config['BWT'], tok]
+                executor.submit(_run, *ar)
                 results_lst[tok]['func'] = func_call
                 results_lst[tok]['args'] = args
                 results_lst[tok]['kwargs'] = kwargs
@@ -117,7 +121,7 @@ def create_app(test_config=None):
 
         # Retrieve Token status from Results
         try:
-            token = token.encode('ascii', 'ignore')
+            # token = token.encode('ascii', 'ignore')
             j = retrieve_token(connect_db(app.config['DB_ROOT']), token)
             data = {'result': j['result'], 
                     'date': j['date'], 
@@ -132,7 +136,7 @@ def create_app(test_config=None):
         #Token Not Found        
         except Exception as e:
             print(e)
-            return Response(status = 404)
+            return Response(str(e), status = 404)
 
     @app.route('/purge')
     def purge():

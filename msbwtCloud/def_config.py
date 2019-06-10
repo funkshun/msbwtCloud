@@ -22,3 +22,7 @@ DB_ROOT = '/path/to/database/file.sqlite'
 
 # Duration that queries remain in database (days)
 DB_QUERY_LIFE = 1.0
+
+# Number of query workers (concurrent query operations)
+# More than one may result in memory conflicts resulting in lower performance
+QUERY_WORKERS = 1

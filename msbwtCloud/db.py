@@ -57,7 +57,7 @@ def retrieve_token(conn, token):
 
     try:
         c = conn.cursor()
-        c.execute(retrieve_token_sql, (token.decode('ascii'),))
+        c.execute(retrieve_token_sql, (token,))
         rows = c.fetchall()
         #print(len(rows))
         return json.loads(rows[0][2])
@@ -68,8 +68,8 @@ def retrieve_token(conn, token):
 def purge_db(conn):
 
     try:
-        c = conn.curson()
-        c.execute("DELETE FROM tasks where token = *")
+        c = conn.cursor()
+        c.execute("DELETE FROM tasks")
         conn.commit()
     except Exception as e:
         print("Failed to purge")
