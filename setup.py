@@ -16,6 +16,6 @@ setup(
         'msbwt==0.3.0'
     ],
     dependency_links=[
-        'git+ssh://git@github.com/txje/msbwt/tarball/master#egg=msbwt-0.3.0'
+        'http://github.com/txje/msbwt/tarball/master#egg=msbwt-0.3.0'
     ]
 )
