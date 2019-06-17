@@ -13,7 +13,8 @@ setup(
         'requests',
         'waitress',
         'apscheduler',
-        'msbwt==0.3.0'
+        'msbwt==0.3.0',
+        'pandas'
     ],
     dependency_links=[
         'http://github.com/txje/msbwt/tarball/master#egg=msbwt-0.3.0'
