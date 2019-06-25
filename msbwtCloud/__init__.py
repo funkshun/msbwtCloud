@@ -44,7 +44,7 @@ def create_app(test_config=None):
         BWT Configuration, should be moved to config file
     """
     
-    app.config['BWT'] = MSBWT.loadBWT(app.config['BWT_ROOT'])
+    #app.config['BWT'] = MSBWT.loadBWT(app.config['BWT_ROOT'])
     
     results_lst = {}
     
@@ -52,6 +52,21 @@ def create_app(test_config=None):
     #app.config['scheduler'].add_job(_cleanQueries, 'interval', minutes=20)
     #app.config['scheduler'].add_job(_cleanQueriesDB, 'interval', minutes=20)
 
+    @app.route('/checkAlive')
+    def checkAlive():
+        names = []
+        for filename in os.listdir(app.config['BWT_ROOT']):
+            try:
+                bwt = MSBWT.loadBWT(app.config['BWT_ROOT'] + filename)
+                if bwt.countOccurrencesOfSeq('T'.encode('utf-8', 'ignore')) > 0:
+                    names.append(filename.decode('utf-8'))
+                else:
+                    continue
+            except Exception as e:
+                print(e)
+                continue
+        data = {"names":names}
+        return Response(json.dumps(data), status=200)
     
     
     """
@@ -63,58 +78,51 @@ def create_app(test_config=None):
         -recoverString
 
     """
-    @app.route('/<func_call>')
-    def functionCaller(func_call):
-        if func_call == 'checkAlive':
-            try:
-                if app.config['BWT'].countOccurrencesOfSeq('T') > 0:
-                    return Response(json.dumps(app.config['DATA']), status=200)
-                else:
-                    return Response(status=500)
-            except:
-                return Response(status=500)
+    @app.route('/<name>/<func_call>')
+    def functionCaller(name, func_call):
+        bwt = MSBWT.loadBWT(app.config['BWT_ROOT'] + name + '/')
 
+        args = request.args.get('args', None)
+        kwargs = request.args.get('kwargs', None)
+        if args is None:
+            return Response(status=400)
+        
+        # positional arguments
+        #args = ast.literal_eval(args.encode('ascii'))
+        args = ast.literal_eval(args) #.encode('utf-8', 'ignore'))
+        
+        #args = 
+        if kwargs is not None:
+            kwargs = ast.literal_eval(kwargs)
         else:
-            args = request.args.get('args', None)
-            kwargs = request.args.get('kwargs', None)
-            if args is None:
-                return Response(status=400)
-            
-            # positional arguments
-            #args = ast.literal_eval(args.encode('ascii'))
-            args = ast.literal_eval(args) #.encode('utf-8', 'ignore'))
-            
-            #args = 
-            if kwargs is not None:
-                kwargs = ast.literal_eval(kwargs)
-            else:
-                kwargs = {}
-            async_flag = request.args.get('async', None)
-            if async_flag is None or async_flag.lower() == 'false':
-                ar = [func_call, args, kwargs, app.config['BWT']]
-                r = executor.submit(_runLegacy, *ar)
-                return Response(json.dumps({'result': r.result()}), status=200)
-            # keyword arguments
-            tok = getToken()
+            kwargs = {}
+        async_flag = request.args.get('async', None)
+        if async_flag is None or async_flag.lower() == 'false':
+            ar = [func_call, args, kwargs, bwt]
+            r = executor.submit(_runLegacy, *ar)
+            return Response(json.dumps({'result': r.result()}), status=200)
+        # keyword arguments
+        tok = getToken()
+        st = 405
+        try:
+            results_lst[tok] = {}
+            ar = [func_call, args, kwargs, bwt, tok]
+            executor.submit(_run, *ar)
+            results_lst[tok]['func'] = func_call
+            results_lst[tok]['args'] = args
+            results_lst[tok]['kwargs'] = kwargs
+            st = 200
+        except:
             st = 405
-            try:
-                results_lst[tok] = {}
-                ar = [func_call, args, kwargs, app.config['BWT'], tok]
-                executor.submit(_run, *ar)
-                results_lst[tok]['func'] = func_call
-                results_lst[tok]['args'] = args
-                results_lst[tok]['kwargs'] = kwargs
-                st = 200
-            except:
-                st = 405
-            summary = {
-                'data': app.config['DATA'],
-                'token': tok,
-                'function': func_call,
-                'args': args,
-                'kwargs': kwargs
-            }
-            return Response(json.dumps(summary), status=st)
+        summary = {
+            'data': app.config['DATA'],
+            'name': name,
+            'token': tok,
+            'function': func_call,
+            'args': args,
+            'kwargs': kwargs
+        }
+        return Response(json.dumps(summary), status=st)
 
     @app.route('/results/<token>')
     def results(token):
