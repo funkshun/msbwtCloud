@@ -67,8 +67,26 @@ def create_app(test_config=None):
                 continue
         data = {"names":names}
         return Response(json.dumps(data), status=200)
-    
-    
+
+    @app.route('/<func_call>')
+    def functionCallerLegacy(func_call):
+        bwt = MSBWT.loadBWT(app.config['BWT_ROOT'] + 'CC027M756_UNC_NYGC/'.encode('utf-8', 'ignore'))
+
+        args = ast.literal_eval(request.args.get('args', None))
+        kwargs = request.args.get('kwargs', None)
+        if args is None:
+            return Response(status=400)
+
+        if kwargs is not None:
+            kwargs = ast.literal_eval(kwargs)
+
+        else:
+            kwargs = {}
+            ar = [func_call, args, kwargs, bwt]
+            r = executor.submit(_runLegacy, *ar)
+            return Response(json.dumps({'result': r.result()}), status=200)
+
+
     """
         Primary Function Route
         Accepts connections bearing the name of a functioon and the corresponding
@@ -80,28 +98,26 @@ def create_app(test_config=None):
     """
     @app.route('/<name>/<func_call>')
     def functionCaller(name, func_call):
-        bwt = MSBWT.loadBWT(app.config['BWT_ROOT'] + name + '/')
+        
+        bwt = MSBWT.loadBWT(app.config['BWT_ROOT'] + name.encode('utf-8', 'ignore') + '/'.encode('utf-8', 'ignore'))
 
-        args = request.args.get('args', None)
+        args = ast.literal_eval(request.args.get('args', None))
         kwargs = request.args.get('kwargs', None)
+        async_flag = request.args.get('async', None)
+
         if args is None:
             return Response(status=400)
-        
-        # positional arguments
-        #args = ast.literal_eval(args.encode('ascii'))
-        args = ast.literal_eval(args) #.encode('utf-8', 'ignore'))
-        
-        #args = 
         if kwargs is not None:
             kwargs = ast.literal_eval(kwargs)
         else:
             kwargs = {}
-        async_flag = request.args.get('async', None)
+
+        #Legacy Compatibility, disable non-blocking functionality
         if async_flag is None or async_flag.lower() == 'false':
             ar = [func_call, args, kwargs, bwt]
             r = executor.submit(_runLegacy, *ar)
             return Response(json.dumps({'result': r.result()}), status=200)
-        # keyword arguments
+
         tok = getToken()
         st = 405
         try:
@@ -124,6 +140,7 @@ def create_app(test_config=None):
         }
         return Response(json.dumps(summary), status=st)
 
+    #Retrieves the results of a query based on a transaction token
     @app.route('/results/<token>')
     def results(token):
 
@@ -204,9 +221,6 @@ def create_app(test_config=None):
             results_lst[token]['status'] = 'FAILED'
             results_lst[token]['done'] = True
             print(e)
-            
-
-        
 
         insert_task(connect_db(app.config['DB_ROOT']), 
                             token, 
@@ -254,6 +268,7 @@ def create_app(test_config=None):
 
         except Exception as e:
             print(e)
+            return None
 
         return result
        
@@ -265,10 +280,3 @@ def getToken():
     for i in range(15):
         t = t + secrets.choice(alphabet)
     return t
-
-
-
-
-    
-
-
