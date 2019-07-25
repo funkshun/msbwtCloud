@@ -68,23 +68,23 @@ def create_app(test_config=None):
         data = {"names":names}
         return Response(json.dumps(data), status=200)
 
-    @app.route('/<func_call>')
-    def functionCallerLegacy(func_call):
-        bwt = MSBWT.loadBWT(app.config['BWT_ROOT'] + 'CC027M756_UNC_NYGC/'.encode('utf-8', 'ignore'))
+    # @app.route('/<func_call>')
+    # def functionCallerLegacy(func_call):
+    #     bwt = MSBWT.loadBWT(app.config['BWT_ROOT'] + 'CC027M756_UNC_NYGC/'.encode('utf-8', 'ignore'))
 
-        args = ast.literal_eval(request.args.get('args', None))
-        kwargs = request.args.get('kwargs', None)
-        if args is None:
-            return Response(status=400)
+    #     args = ast.literal_eval(request.args.get('args', None))
+    #     kwargs = request.args.get('kwargs', None)
+    #     if args is None:
+    #         return Response(status=400)
 
-        if kwargs is not None:
-            kwargs = ast.literal_eval(kwargs)
+    #     if kwargs is not None:
+    #         kwargs = ast.literal_eval(kwargs)
 
-        else:
-            kwargs = {}
-            ar = [func_call, args, kwargs, bwt]
-            r = executor.submit(_runLegacy, *ar)
-            return Response(json.dumps({'result': r.result()}), status=200)
+    #     else:
+    #         kwargs = {}
+    #         ar = [func_call, args, kwargs, bwt]
+    #         r = executor.submit(_runLegacy, *ar)
+    #         return Response(json.dumps({'result': r.result()}), status=200)
 
 
     """
