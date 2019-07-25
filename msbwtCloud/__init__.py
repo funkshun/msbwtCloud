@@ -26,6 +26,7 @@ def create_app(test_config=None):
     """
         Flask Boilerplate
     """
+    DEBUG = True
 
     app = Flask(__name__, instance_relative_config = True)
     
@@ -98,6 +99,9 @@ def create_app(test_config=None):
     """
     @app.route('/<name>/<func_call>')
     def functionCaller(name, func_call):
+        
+        if DEBUG:
+            print("Serving {}".format(name))
         
         bwt = MSBWT.loadBWT(app.config['BWT_ROOT'] + name.encode('utf-8', 'ignore') + '/'.encode('utf-8', 'ignore'))
 
