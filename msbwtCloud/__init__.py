@@ -248,6 +248,10 @@ def create_app(test_config=None):
             if func_call in available:
                 f = getattr(bwt, func_call)
                 result = f(*args_b, **kwargs)
+                try:
+                    result = result.decode()
+                except:
+                    pass
                 
                 
             # Recovers all strings from range of indices, non-parallel
