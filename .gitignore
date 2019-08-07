@@ -10,3 +10,4 @@ instance/
 dist/
 build/
 msbwtCloud.egg-info/
+msbwtStorage/

@@ -5,6 +5,7 @@
 
 # General service information
 LEGACY = True
+print("modified")
 
 DATA = {
     'name': "UNC csbio msBWT server",
@@ -14,7 +15,7 @@ DATA = {
 #### BWT ####
 
 # Location of the BWT (Full path with trailing '/')
-BWT_ROOT = '/playpen/msbwt/'.encode('utf-8', 'ignore')
+BWT_ROOT = '/playpen/msbwtCloud/msbwtStorage/'.encode('utf-8', 'ignore')
 
 ##### DATABASE ####
 

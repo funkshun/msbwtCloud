@@ -17,10 +17,20 @@ build:
 	yes | sudo pip3 install pip --upgrade
 	yes | sudo pip3 install -r requirements.txt
 
-	mkdir msbwtStorage
+	mkdir -p msbwtStorage
 
 run:
-	nohup waitress-serve --port $(PORT) --call 'msbwtCloud:create_app' > msbwtCloud.log &
+	nohup waitress-serve --port $(PORT) --call 'msbwtCloud:create_app' >> msbwtCloud.log &
+
+stop:
+	killall waitress-serve && echo "Stopped" || echo "No instances running..."
+
+restart: stop run
+	
+
+
+.PHONY: clean-pyc clean-build build run restart
+
 
 
 
