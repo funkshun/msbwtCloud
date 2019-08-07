@@ -1,0 +1,6 @@
+flask
+requests
+waitress
+apscheduler
+git+https://github.com/txje/msbwt
+pandas
