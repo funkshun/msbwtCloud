@@ -33,7 +33,7 @@ destroy:
 
 
 run:
-	nohup waitress-serve --port $(PORT) --call 'msbwtCloud:create_app' >> msbwtCloud.log &
+	nohup waitress-serve --port=$(PORT) --call 'msbwtCloud:create_app' >> msbwtCloud.log &
 
 stop:
 	killall waitress-serve && echo "Stopped" || echo "No instances running..."

@@ -5,7 +5,6 @@
 
 # General service information
 LEGACY = True
-print("modified")
 
 DATA = {
     'name': "UNC csbio msBWT server",
