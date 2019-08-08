@@ -19,6 +19,15 @@ build:
 
 	mkdir -p msbwtStorage
 
+destroy:
+
+	mkdir -p ../msbwtStorage
+	mv msbwtStorage/* ../msbwtStorage/
+	cd ..
+	yes | rm -rf msbwtCloud/
+	@echo "BWTs preserved in msbwtStorage one level up"
+
+
 run:
 	nohup waitress-serve --port $(PORT) --call 'msbwtCloud:create_app' >> msbwtCloud.log &
 
