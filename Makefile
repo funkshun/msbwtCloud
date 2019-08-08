@@ -13,11 +13,15 @@ clean-build:
 build:
 	yes | sudo apt install python3-pip
 	yes | sudo apt install libbz2-dev
+	yes | sudo apt install zlib1g-dev
 	yes | sudo apt install liblzma-dev
 	yes | sudo pip3 install pip --upgrade
 	yes | sudo pip3 install -r requirements.txt
 
 	mkdir -p msbwtStorage
+
+open:
+	sudo iptables -A INPUT -p tcp --dport $(PORT) -j ACCEPT
 
 destroy:
 
