@@ -11,17 +11,17 @@ clean-build:
 	rm --force --recursive *.egg-info
 
 build:
-	yes | sudo apt install python3-pip
-	yes | sudo apt install libbz2-dev
-	yes | sudo apt install zlib1g-dev
-	yes | sudo apt install liblzma-dev
-	yes | sudo pip3 install pip --upgrade
-	yes | sudo pip3 install -r requirements.txt
+	yes | sudo -H apt install python3-pip
+	yes | sudo -H apt install libbz2-dev
+	yes | sudo -H apt install zlib1g-dev
+	yes | sudo -H apt install liblzma-dev
+	yes | sudo -H pip3 install pip --upgrade
+	yes | sudo -H pip3 install -r requirements.txt
 
 	mkdir -p msbwtStorage
 
 open:
-	sudo iptables -A INPUT -p tcp --dport $(PORT) -j ACCEPT
+	sudo -H iptables -A INPUT -p tcp --dport $(PORT) -j ACCEPT
 
 destroy:
 
