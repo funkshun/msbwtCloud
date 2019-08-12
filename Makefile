@@ -1,4 +1,5 @@
 PORT=8181
+VERSION=1.0.0
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm --force {} +
@@ -42,7 +43,7 @@ restart: stop run
 	
 
 
-.PHONY: clean-pyc clean-build build run restart
+.PHONY: clean-pyc clean-build build run restart open destroy stop
 
 
 
