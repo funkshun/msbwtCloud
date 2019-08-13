@@ -14,15 +14,18 @@ This also trivializes the storage of query results, preventing wasted computatio
 ## Installation
 
 - Clone this repository on to the device hosting the BWT datastructure.
-- Rename `def_config.py` to `config.py` and change values to match desired values
-- Run `python setup.py install`
-- Run `waitress-serve --call 'msbwtCloud:create_app'` to create server on port 8080
+- Run `make build`
+- Move datasets into the created `msbwtStorage` directory
+  - Datasets may be stored elsewhere by changing the `BWT_ROOT` value in `config.py`
+- Run `make run PORT=<PORT>` to start server on given port. Default is `8181` 
 
 ## msBWTCloud
 
-msBWTCloud provides the primary interface for interacting with remote BWT data structures. The following functions are exposed at:
+msBWTCloud provides the primary interface for interacting with remote BWT data structures.
+`name` must correspond to the directory name of one of the datasets in `msbwtStorage`
+The following functions are exposed at:
 
-`/<function_name>?args=[args_list]&kwargs={kwargs_list}`
+`/name/<function_name>?args=[args_list]&kwargs={kwargs_list}`
 
 ### Status Codes
 
