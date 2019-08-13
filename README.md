@@ -45,7 +45,7 @@ Queries the number of times a sequence occurrs in the target dataset.
     `seq::String`: the target sequence to be counted  
     `givenRange::(Long, Long)`: (OPTIONAL) Restricts the query to the given range
 - Sample Call  
-`http://test.test/countOccurrencesOfSeq?args=["CATAGAT"]`  
+`http://test.test/<name>/countOccurrencesOfSeq?args=["CATAGAT"]`  
 Queries the number of occurrences of `CATAGAT` between
 `1346091641L` and `15700916349L` in the dataset held by `test.test`
 
@@ -56,7 +56,7 @@ Queries the string at the index given in the target dataset.
 - Arguments  
     `index::Integer`: the target sequence to be counted  
 - Sample Call  
-`http://test.test/recoverString?args=[426689]`  
+`http://test.test/<name>/recoverString?args=[426689]`  
 Queries the string at index `426689` in the dataset held by `test.test`
 
 ### findIndicesOfStr
@@ -67,7 +67,7 @@ Queries the index if the given string.
     `seq::String`: the target sequence to be counted  
     `givenRange::(Long, Long)`: (OPTIONAL) Restricts the query to the given range  
 - Sample Call  
-`http://test.test/findIndicesOfStr?args=["CATAGAT"]`  
+`http://test.test/<name>/findIndicesOfStr?args=["CATAGAT"]`  
 Queries the dataset for the index for the string `CATAGAT` in the dataset held by `test.test`
 
 ### getSequenceDollarID
@@ -78,7 +78,7 @@ Queries the BWT end marker index for the given sequence
     `seq::String`: the target sequence to be counted  
     `returnOffset::Boolean`: (OPTIONAL - defaults to false) True will query the offset
 - Sample Call  
-`http://test.test/getSequenceDollarID?args=["CATAGAT"]`  
+`http://test.test/<name>getSequenceDollarID?args=["CATAGAT"]`  
 Queries the dataset for the index for the string `CATAGAT` in the dataset held by `test.test`
 
 ### Optional Arguments
@@ -89,7 +89,7 @@ after the `args` parameter
 
 #### Example
 
-`http://test.test/getSequenceDollarID?args=["CATAGAT"]&returnOffset=True`
+`http://test.test/<name>getSequenceDollarID?args=["CATAGAT"]&returnOffset=True`
 
 ### Batch Queries
 
@@ -104,7 +104,7 @@ Queries all strings in the given range of indices
     `endIndex:Long`: the end of the range of indices to be queried  
     `returnOffset::Boolean`: (OPTIONAL - defaults to false) True will query the offset
 - Sample Call  
-`http://test.test/batchRecoverString?args=[1346091641L, 15700916349L]`
+`http://test.test/<name>batchRecoverString?args=[1346091641L, 15700916349L]`
 
 #### batchCountOccurrencesOfSeq
 
@@ -114,7 +114,7 @@ Queries counts of a list of sequences
     `seqList::List<String>`: List of sequences to be counted  
     `givenRange::(Long, Long)`: (OPTIONAL) Restricts the query to the given range
 - Sample Call  
-`http://test.test/batchCountOccurrencesOfSeq?args=["CATAGAT", "GATTACA"]`
+`http://test.test/<name>batchCountOccurrencesOfSeq?args=["CATAGAT", "GATTACA"]`
 
 #### batchFastCountOccurrences
 
@@ -123,7 +123,7 @@ Optimized Routine to count occurrences of a list of sequences
 - Arguments  
     `seqList::List<String>`: List of sequences to be counted  
 - Sample Call  
-`http://test.test/batchFastCountOccurrences?args=['CATAGAT', 'GATTACA']`
+`http://test.test/<name>batchFastCountOccurrences?args=['CATAGAT', 'GATTACA']`
 
 ### Return Structure
 
