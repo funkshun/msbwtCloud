@@ -1,6 +1,8 @@
 PORT=8181
 VERSION=1.0.0
 
+build: open download
+
 clean-pyc:
 	find . -name '*.pyc' -exec rm --force {} +
 	find . -name '*.pyo' -exec rm --force {} +
@@ -11,7 +13,7 @@ clean-build:
 	rm --force --recursive dist/
 	rm --force --recursive *.egg-info
 
-build:
+download: 
 	yes | sudo -H apt install python3-pip
 	yes | sudo -H apt install libbz2-dev
 	yes | sudo -H apt install zlib1g-dev
@@ -43,7 +45,7 @@ restart: stop run
 	
 
 
-.PHONY: clean-pyc clean-build build run restart open destroy stop
+.PHONY: clean-pyc clean-build build run restart open destroy stop download
 
 
 
